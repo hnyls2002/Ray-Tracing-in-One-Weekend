@@ -63,11 +63,11 @@ impl Div<f64> for Vec3 {
         Self(self.0 / rhs, self.1 / rhs, self.2 / rhs)
     }
 }
-/*
+
 pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.0 * v.0 + u.1 * v.1 + u.2 * v.2
 }
-
+/*
 pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
     Vec3(
         u.1 * v.2 - u.2 * v.1,
@@ -76,6 +76,7 @@ pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
     )
 }
 */
+
 impl Vec3 {
     pub fn length(self) -> f64 {
         (self.0 * self.0 + self.1 * self.1 + self.2 * self.2).sqrt()
