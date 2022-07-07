@@ -1,3 +1,4 @@
 target/
 output/*
 !.gitkeep
+!image2.jpg
