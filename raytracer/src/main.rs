@@ -12,18 +12,24 @@ use ray::Ray;
 
 use crate::vec3::Vec3;
 
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> bool {
+fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
     let oc = (*r).orig - *center;
     let a = dot(&r.direction(), &r.direction());
     let b = 2.0 * dot(&oc, &r.direction());
     let c = dot(&oc, &oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r) {
-        return Color::new(1.0, 0.0, 0.0);
+    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r);
+    if t > 0.0 {
+        let n = (r.at(t) - Vec3(0.0, 0.0, -1.0)).unit_vec();
+        return Color::new(n.0 + 1.0, n.1 + 1.0, n.2 + 1.0) * 0.5;
     }
     let unit_direction = r.direction().unit_vec();
     let t = 0.5 * (unit_direction.1 + 1.0);
@@ -31,7 +37,7 @@ fn ray_color(r: &Ray) -> Color {
 }
 
 fn main() {
-    let path = "output/image3.jpg";
+    let path = "output/image4.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -48,7 +54,7 @@ fn main() {
     let vertical = Vec3::new(0.0, viewport_height, 0.0);
     let low_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vec3(0.0, 0.0, focal_length);
 
-    let quality = 100;
+    let quality = 60;
     let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
 
     let progress = if option_env!("CI").unwrap_or_default() == "true" {
@@ -59,6 +65,11 @@ fn main() {
     progress.set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
         .progress_chars("#>-"));
+
+    /*    println!("P3");
+        println!("{} {}",image_width,image_height);
+        println!("255");
+    */
 
     for j in (0..image_height).rev() {
         for i in 0..image_width {
@@ -73,6 +84,10 @@ fn main() {
 
             let pixel_color = ray_color(&r);
             *pixel = image::Rgb(pixel_color.to_array());
+            /*
+                        let f = pixel_color.to_array();
+                        println!("{} {} {}", f[0], f[1], f[2]);
+            */
         }
         progress.inc(1);
     }
