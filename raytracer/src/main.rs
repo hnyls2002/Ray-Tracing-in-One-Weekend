@@ -9,7 +9,9 @@ mod hittablelist;
 mod sphere;
 
 use camera::rtweekend::{
-    clamp, INFINITY,
+    clamp,
+    vec3::random_in_unit_sphere,
+    INFINITY,
     {ray::Ray, vec3::Color},
 };
 
@@ -22,10 +24,23 @@ use crate::{
     sphere::Sphere,
 };
 
-fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     let mut rec: HitRecord = Default::default();
+
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
     if world.hit(r, 0.0, INFINITY, &mut rec) {
-        return (rec.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
+        let target = rec.p + rec.normal + random_in_unit_sphere();
+        return ray_color(
+            &Ray {
+                orig: rec.p,
+                dir: target - rec.p,
+            },
+            world,
+            depth - 1,
+        ) * 0.5;
     }
     let unit_direction = r.direction().unit_vec();
     let t = (unit_direction.1 + 1.0) * 0.5;
@@ -44,13 +59,14 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image6.jpg";
+    let path = "output/image7.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     // World
     let mut world = HittableList { objects: vec![] };
@@ -94,7 +110,7 @@ fn main() {
                 let u = (i as f64 + random_double_unit()) / (image_width - 1) as f64;
                 let v = (j as f64 + random_double_unit()) / (image_height - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_colors += ray_color(&r, &world);
+                pixel_colors += ray_color(&r, &world, max_depth);
             }
 
             write_color(pixel, &pixel_colors, samples_per_pixel);

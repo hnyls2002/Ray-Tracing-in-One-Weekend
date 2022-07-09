@@ -1,6 +1,8 @@
 use std::ops::{Add, Div, Mul, Sub};
 use std::ops::{AddAssign, DivAssign, MulAssign, Neg};
 
+use super::random_double;
+
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
@@ -88,9 +90,32 @@ impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self(x, y, z)
     }
+    /*pub fn random_unit() -> Self {
+        Vec3(
+            random_double_unit(),
+            random_double_unit(),
+            random_double_unit(),
+        )
+    }*/
+    pub fn random(min: f64, max: f64) -> Self {
+        Vec3(
+            random_double(min, max),
+            random_double(min, max),
+            random_double(min, max),
+        )
+    }
 }
 
-impl Vec3 {}
+pub fn random_in_unit_sphere() -> Vec3 {
+    let mut p = Vec3::random(-1.0, 1.0);
+    loop {
+        if p.length() < 1.0 {
+            break;
+        }
+        p = Vec3::random(-1.0, 1.0);
+    }
+    p
+}
 
 pub type Point3 = Vec3;
 pub type Color = Vec3;
