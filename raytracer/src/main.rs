@@ -10,7 +10,7 @@ mod sphere;
 
 use camera::rtweekend::{
     clamp,
-    vec3::random_in_unit_sphere,
+    vec3::random_unit_vector,
     INFINITY,
     {ray::Ray, vec3::Color},
 };
@@ -32,7 +32,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     }
 
     if world.hit(r, 0.001, INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + random_in_unit_sphere();
+        let target = rec.p + rec.normal + random_unit_vector();
         return ray_color(
             &Ray {
                 orig: rec.p,
@@ -67,7 +67,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image8.jpg";
+    let path = "output/image9.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;

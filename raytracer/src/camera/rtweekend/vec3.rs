@@ -117,5 +117,9 @@ pub fn random_in_unit_sphere() -> Vec3 {
     p
 }
 
+pub fn random_unit_vector() -> Vec3 {
+    random_in_unit_sphere().unit_vec()
+}
+
 pub type Point3 = Vec3;
 pub type Color = Vec3;
