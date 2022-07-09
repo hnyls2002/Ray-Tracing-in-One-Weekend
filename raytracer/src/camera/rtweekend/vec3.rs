@@ -117,8 +117,19 @@ pub fn random_in_unit_sphere() -> Vec3 {
     p
 }
 
+/*
 pub fn random_unit_vector() -> Vec3 {
     random_in_unit_sphere().unit_vec()
+}
+*/
+
+pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
+    let in_unit_sphere = random_in_unit_sphere();
+    if dot(&in_unit_sphere, normal) > 0.0 {
+        in_unit_sphere
+    } else {
+        -in_unit_sphere
+    }
 }
 
 pub type Point3 = Vec3;
