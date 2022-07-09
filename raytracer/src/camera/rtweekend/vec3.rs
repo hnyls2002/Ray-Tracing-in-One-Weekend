@@ -88,13 +88,6 @@ impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self(x, y, z)
     }
-    pub fn to_array(self) -> [u8; 3] {
-        [
-            (self.0 * 255.998) as u8,
-            (self.1 * 255.999) as u8,
-            (self.2 * 255.999) as u8,
-        ]
-    }
 }
 
 impl Vec3 {}

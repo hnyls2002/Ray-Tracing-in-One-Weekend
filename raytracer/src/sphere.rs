@@ -1,6 +1,6 @@
+use crate::camera::rtweekend::ray::Ray;
+use crate::camera::rtweekend::vec3::{dot, Point3};
 use crate::hittablelist::hittable::{HitRecord, Hittable};
-use crate::rtweekend::ray::Ray;
-use crate::rtweekend::vec3::{dot, Point3};
 
 pub struct Sphere {
     pub center: Point3,

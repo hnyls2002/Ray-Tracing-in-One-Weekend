@@ -1,4 +1,4 @@
-use crate::rtweekend::ray::Ray;
+use crate::camera::rtweekend::ray::Ray;
 
 use self::hittable::{HitRecord, Hittable};
 

@@ -1,4 +1,4 @@
-use crate::rtweekend::{
+use crate::camera::rtweekend::{
     ray::Ray,
     vec3::{dot, Point3, Vec3},
 };

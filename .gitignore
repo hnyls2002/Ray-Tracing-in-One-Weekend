@@ -1,6 +1,3 @@
 target/
 output/*
 !.gitkeep
-!image2.jpg
-!image3.jpg
-!image4.jpg

@@ -1,20 +1,26 @@
 use console::style;
 use hittablelist::hittable::{HitRecord, Hittable};
-use image::{ImageBuffer, RgbImage};
+use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::{fs::File, process::exit};
 
+mod camera;
 mod hittablelist;
-mod rtweekend;
 mod sphere;
 
-use rtweekend::{
-    ray::Ray,
-    vec3::{Color, Point3, Vec3},
-    INFINITY,
+use camera::rtweekend::{
+    clamp, INFINITY,
+    {ray::Ray, vec3::Color},
 };
 
-use crate::{hittablelist::HittableList, sphere::Sphere};
+use crate::{
+    camera::{
+        rtweekend::{random_double_unit, vec3::Point3},
+        Camera,
+    },
+    hittablelist::HittableList,
+    sphere::Sphere,
+};
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
     let mut rec: HitRecord = Default::default();
@@ -26,13 +32,25 @@ fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
     Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
 }
 
+fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32) {
+    let r = pixel_colors.0 / (samples_per_pixel as f64);
+    let g = pixel_colors.1 / (samples_per_pixel as f64);
+    let b = pixel_colors.2 / (samples_per_pixel as f64);
+    let r = (clamp(r, 0.0, 0.999) * (256_f64)).floor() as u8;
+    let g = (clamp(g, 0.0, 0.999) * (256_f64)).floor() as u8;
+    let b = (clamp(b, 0.0, 0.999) * (256_f64)).floor() as u8;
+
+    *pixel = image::Rgb([r, g, b]);
+}
+
 fn main() {
-    let path = "output/image5.jpg";
+    let path = "output/image6.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
+    let samples_per_pixel = 100;
 
     // World
     let mut world = HittableList { objects: vec![] };
@@ -46,14 +64,7 @@ fn main() {
     }));
 
     // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let low_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vec3(0.0, 0.0, focal_length);
+    let cam = Camera::default();
 
     let quality = 60;
     let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
@@ -61,7 +72,7 @@ fn main() {
     let progress = if option_env!("CI").unwrap_or_default() == "true" {
         ProgressBar::hidden()
     } else {
-        ProgressBar::new((image_height * image_width) as u64)
+        ProgressBar::new(image_height as u64)
     };
     progress.set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
@@ -76,15 +87,17 @@ fn main() {
         for i in 0..image_width {
             let pixel = img.get_pixel_mut(i, image_height - j - 1);
 
-            let u = i as f64 / (image_width - 1) as f64;
-            let v = j as f64 / (image_height - 1) as f64;
-            let r = Ray::new(
-                &origin,
-                &(low_left_corner + horizontal * u + vertical * v - origin).clone(),
-            );
+            let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
 
-            let pixel_color = ray_color(&r, &world);
-            *pixel = image::Rgb(pixel_color.to_array());
+            for _s in 0..samples_per_pixel {
+                // a bunch of rays hitting the object
+                let u = (i as f64 + random_double_unit()) / (image_width - 1) as f64;
+                let v = (j as f64 + random_double_unit()) / (image_height - 1) as f64;
+                let r = cam.get_ray(u, v);
+                pixel_colors += ray_color(&r, &world);
+            }
+
+            write_color(pixel, &pixel_colors, samples_per_pixel);
             /*
                         let f = pixel_color.to_array();
                         println!("{} {} {}", f[0], f[1], f[2]);
