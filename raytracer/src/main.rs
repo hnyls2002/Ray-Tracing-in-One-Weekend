@@ -31,7 +31,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    if world.hit(r, 0.0, INFINITY, &mut rec) {
+    if world.hit(r, 0.001, INFINITY, &mut rec) {
         let target = rec.p + rec.normal + random_in_unit_sphere();
         return ray_color(
             &Ray {
@@ -51,15 +51,23 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
     let r = pixel_colors.0 / (samples_per_pixel as f64);
     let g = pixel_colors.1 / (samples_per_pixel as f64);
     let b = pixel_colors.2 / (samples_per_pixel as f64);
+
+    // Gamma-correct for gamma=2.0
+    let r = r.sqrt();
+    let g = g.sqrt();
+    let b = b.sqrt();
+
     let r = (clamp(r, 0.0, 0.999) * (256_f64)).floor() as u8;
     let g = (clamp(g, 0.0, 0.999) * (256_f64)).floor() as u8;
     let b = (clamp(b, 0.0, 0.999) * (256_f64)).floor() as u8;
+
+    //println!("{} {} {}", r, g, b);
 
     *pixel = image::Rgb([r, g, b]);
 }
 
 fn main() {
-    let path = "output/image7.jpg";
+    let path = "output/image8.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -114,10 +122,6 @@ fn main() {
             }
 
             write_color(pixel, &pixel_colors, samples_per_pixel);
-            /*
-                        let f = pixel_color.to_array();
-                        println!("{} {} {}", f[0], f[1], f[2]);
-            */
         }
         progress.inc(1);
     }
