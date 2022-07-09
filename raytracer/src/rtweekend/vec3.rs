@@ -1,7 +1,7 @@
 use std::ops::{Add, Div, Mul, Sub};
 use std::ops::{AddAssign, DivAssign, MulAssign, Neg};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
 impl Neg for Vec3 {
@@ -67,6 +67,7 @@ impl Div<f64> for Vec3 {
 pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.0 * v.0 + u.1 * v.1 + u.2 * v.2
 }
+
 /*
 pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
     Vec3(

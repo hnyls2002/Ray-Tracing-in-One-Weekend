@@ -1,48 +1,49 @@
 use console::style;
+use hittablelist::hittable::{HitRecord, Hittable};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::{fs::File, process::exit};
 
-mod ray;
-mod vec3;
+mod hittablelist;
+mod rtweekend;
+mod sphere;
 
-use vec3::{dot, Color, Point3};
+use rtweekend::{
+    ray::Ray,
+    vec3::{Color, Point3, Vec3},
+    INFINITY,
+};
 
-use ray::Ray;
+use crate::{hittablelist::HittableList, sphere::Sphere};
 
-use crate::vec3::Vec3;
-
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
-    let oc = (*r).orig - *center;
-    let a = dot(&r.direction(), &r.direction());
-    let b = 2.0 * dot(&oc, &r.direction());
-    let c = dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-b - discriminant.sqrt()) / (2.0 * a)
-    }
-}
-
-fn ray_color(r: &Ray) -> Color {
-    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r);
-    if t > 0.0 {
-        let n = (r.at(t) - Vec3(0.0, 0.0, -1.0)).unit_vec();
-        return Color::new(n.0 + 1.0, n.1 + 1.0, n.2 + 1.0) * 0.5;
+fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+    let mut rec: HitRecord = Default::default();
+    if world.hit(r, 0.0, INFINITY, &mut rec) {
+        return (rec.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
     }
     let unit_direction = r.direction().unit_vec();
-    let t = 0.5 * (unit_direction.1 + 1.0);
+    let t = (unit_direction.1 + 1.0) * 0.5;
     Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
 }
 
 fn main() {
-    let path = "output/image4.jpg";
+    let path = "output/image5.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
+
+    // World
+    let mut world = HittableList { objects: vec![] };
+    world.add(Box::new(Sphere {
+        center: Point3::new(0.0, 0.0, -1.0),
+        radius: 0.5,
+    }));
+    world.add(Box::new(Sphere {
+        center: Point3::new(0.0, -100.5, -1.0),
+        radius: 100.0,
+    }));
 
     // Camera
     let viewport_height = 2.0;
@@ -82,7 +83,7 @@ fn main() {
                 &(low_left_corner + horizontal * u + vertical * v - origin).clone(),
             );
 
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
             *pixel = image::Rgb(pixel_color.to_array());
             /*
                         let f = pixel_color.to_array();
