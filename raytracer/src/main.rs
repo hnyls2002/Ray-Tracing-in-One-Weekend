@@ -66,7 +66,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image15.jpg";
+    let path = "output/image16.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -103,6 +103,11 @@ fn main() {
     world.add(Box::new(Sphere {
         center: Point3::new(-1.0, 0.0, -1.0),
         radius: 0.5,
+        mat_ptr: Some(material_left.clone()),
+    }));
+    world.add(Box::new(Sphere {
+        center: Point3::new(-1.0, 0.0, -1.0),
+        radius: -0.4,
         mat_ptr: Some(material_left),
     }));
     world.add(Box::new(Sphere {
