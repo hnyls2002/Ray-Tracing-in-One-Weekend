@@ -1,10 +1,14 @@
+use std::sync::Arc;
+
 use crate::camera::rtweekend::ray::Ray;
 use crate::camera::rtweekend::vec3::{dot, Point3};
 use crate::hittablelist::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 
 pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
+    pub mat_ptr: Option<Arc<dyn Material>>,
 }
 
 impl Hittable for Sphere {
@@ -30,6 +34,7 @@ impl Hittable for Sphere {
         rec.p = r.at(rec.t);
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, &outward_normal);
+        rec.mat_ptr = self.mat_ptr.clone();
         true
     }
 }

@@ -40,7 +40,7 @@ impl Add for Vec3 {
 
 impl Sub for Vec3 {
     type Output = Self;
-    fn sub(self, rhs: Self) -> Self::Output {
+    fn sub(self, rhs: Vec3) -> Self::Output {
         Self(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
     }
 }
@@ -104,6 +104,10 @@ impl Vec3 {
             random_double(min, max),
         )
     }
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.0.abs() < s && self.1.abs() < s && self.2.abs() < s
+    }
 }
 
 pub fn random_in_unit_sphere() -> Vec3 {
@@ -117,12 +121,15 @@ pub fn random_in_unit_sphere() -> Vec3 {
     p
 }
 
-/*
 pub fn random_unit_vector() -> Vec3 {
     random_in_unit_sphere().unit_vec()
 }
-*/
 
+pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+    *v - *n * dot(v, n) * 2.0
+}
+
+#[allow(dead_code)]
 pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
     let in_unit_sphere = random_in_unit_sphere();
     if dot(&in_unit_sphere, normal) > 0.0 {

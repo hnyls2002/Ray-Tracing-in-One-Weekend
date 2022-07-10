@@ -2,16 +2,15 @@ use console::style;
 use hittablelist::hittable::{HitRecord, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::{fs::File, process::exit};
+use std::{fs::File, process::exit, sync::Arc};
 
 mod camera;
 mod hittablelist;
+mod material;
 mod sphere;
 
 use camera::rtweekend::{
-    clamp,
-    vec3::random_in_hemisphere,
-    INFINITY,
+    clamp, INFINITY,
     {ray::Ray, vec3::Color},
 };
 
@@ -21,6 +20,7 @@ use crate::{
         Camera,
     },
     hittablelist::HittableList,
+    material::{Lambertian, Metal},
     sphere::Sphere,
 };
 
@@ -32,15 +32,14 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     }
 
     if world.hit(r, 0.001, INFINITY, &mut rec) {
-        let target = rec.p + random_in_hemisphere(&rec.normal);
-        return ray_color(
-            &Ray {
-                orig: rec.p,
-                dir: target - rec.p,
-            },
-            world,
-            depth - 1,
-        ) * 0.5;
+        let mut scattered = Ray::default();
+        let mut attenuation = Color::default();
+        if let Some(mat_ptr) = rec.clone().mat_ptr {
+            if mat_ptr.scatter(r, &rec, &mut attenuation, &mut scattered) {
+                return ray_color(&scattered, world, depth - 1) * attenuation;
+            }
+        }
+        return Color::new(0.0, 0.0, 0.0);
     }
     let unit_direction = r.direction().unit_vec();
     let t = (unit_direction.1 + 1.0) * 0.5;
@@ -67,7 +66,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image10.jpg";
+    let path = "output/image11.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -78,13 +77,39 @@ fn main() {
 
     // World
     let mut world = HittableList { objects: vec![] };
-    world.add(Box::new(Sphere {
-        center: Point3::new(0.0, 0.0, -1.0),
-        radius: 0.5,
-    }));
+
+    let material_ground = Arc::new(Lambertian {
+        albedo: Color::new(0.8, 0.8, 0.0),
+    });
+    let material_center = Arc::new(Lambertian {
+        albedo: Color::new(0.7, 0.3, 0.3),
+    });
+    let material_left = Arc::new(Metal {
+        albedo: Color::new(0.8, 0.8, 0.8),
+    });
+    let material_right = Arc::new(Metal {
+        albedo: Color::new(0.8, 0.6, 0.2),
+    });
+
     world.add(Box::new(Sphere {
         center: Point3::new(0.0, -100.5, -1.0),
         radius: 100.0,
+        mat_ptr: Some(material_ground),
+    }));
+    world.add(Box::new(Sphere {
+        center: Point3::new(0.0, 0.0, -1.0),
+        radius: 0.5,
+        mat_ptr: Some(material_center),
+    }));
+    world.add(Box::new(Sphere {
+        center: Point3::new(-1.0, 0.0, -1.0),
+        radius: 0.5,
+        mat_ptr: Some(material_left),
+    }));
+    world.add(Box::new(Sphere {
+        center: Point3::new(1.0, 0.0, -1.0),
+        radius: 0.5,
+        mat_ptr: Some(material_right),
     }));
 
     // Camera
