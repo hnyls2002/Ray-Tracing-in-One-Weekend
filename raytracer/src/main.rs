@@ -69,7 +69,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image19.jpg";
+    let path = "output/image20.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -120,12 +120,20 @@ fn main() {
     }));
 
     // Camera
+    let lookfrom = Point3::new(3.0, 3.0, 2.0);
+    let lookat = Point3::new(0.0, 0.0, -1.0);
+    let vup = Vec3(0.0, 1.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
+
     let cam = Camera::new(
-        &Point3::new(-2.0, 2.0, 1.0),
-        &Point3::new(0.0, 0.0, -1.0),
-        &Vec3(0.0, 1.0, 0.0),
+        &lookfrom,
+        &lookat,
+        &vup,
         20.0,
         aspect_ratio,
+        aperture,
+        dist_to_focus,
     );
 
     let quality = 60;

@@ -1,7 +1,7 @@
 use std::ops::{Add, Div, Mul, Sub};
 use std::ops::{AddAssign, DivAssign, MulAssign, Neg};
 
-use super::random_double;
+use super::{random_double, random_double_unit};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3(pub f64, pub f64, pub f64);
@@ -88,13 +88,14 @@ impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self(x, y, z)
     }
-    /*pub fn random_unit() -> Self {
+    #[allow(dead_code)]
+    pub fn random_unit() -> Self {
         Vec3(
             random_double_unit(),
             random_double_unit(),
             random_double_unit(),
         )
-    }*/
+    }
     pub fn random(min: f64, max: f64) -> Self {
         Vec3(
             random_double(min, max),
@@ -121,6 +122,18 @@ pub fn random_in_unit_sphere() -> Vec3 {
 
 pub fn random_unit_vector() -> Vec3 {
     random_in_unit_sphere().unit_vec()
+}
+
+pub fn random_in_unit_disk() -> Vec3 {
+    let ret: Vec3;
+    loop {
+        let p = Vec3(random_double(-1.0, 1.0), random_double(-1.0, 1.0), 0.0);
+        if p.length() < 1.0 {
+            ret = p;
+            break;
+        }
+    }
+    ret
 }
 
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
