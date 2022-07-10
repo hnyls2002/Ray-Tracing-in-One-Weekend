@@ -1,7 +1,7 @@
 use crate::{
     camera::rtweekend::{
         ray::Ray,
-        vec3::{dot, random_unit_vector, reflect, Color},
+        vec3::{dot, random_in_unit_sphere, random_unit_vector, reflect, Color},
     },
     hittablelist::hittable::HitRecord,
 };
@@ -46,6 +46,7 @@ impl Material for Lambertian {
 
 pub struct Metal {
     pub albedo: Color,
+    pub fuzz: f64,
 }
 
 impl Material for Metal {
@@ -59,7 +60,14 @@ impl Material for Metal {
         let reflected = reflect(&r_in.direction().unit_vec(), &rec.normal);
         *scattered = Ray {
             orig: rec.p,
-            dir: reflected,
+            dir: reflected
+                + random_in_unit_sphere() * {
+                    if self.fuzz < 1.0 {
+                        self.fuzz
+                    } else {
+                        1.0
+                    }
+                },
         };
         *attenuation = self.albedo;
         dot(&scattered.direction(), &rec.normal) > 0.0
