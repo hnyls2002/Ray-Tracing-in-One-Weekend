@@ -66,7 +66,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image14.jpg";
+    let path = "output/image15.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -81,11 +81,13 @@ fn main() {
     let material_ground = Arc::new(Lambertian {
         albedo: Color::new(0.8, 0.8, 0.0),
     });
-    let material_center = Arc::new(Dielectric { ir: 1.5 });
+    let material_center = Arc::new(Lambertian {
+        albedo: Color::new(0.1, 0.2, 0.5),
+    });
     let material_left = Arc::new(Dielectric { ir: 1.5 });
     let material_right = Arc::new(Metal {
         albedo: Color::new(0.8, 0.6, 0.2),
-        fuzz: 1.0,
+        fuzz: 0.0,
     });
 
     world.add(Box::new(Sphere {

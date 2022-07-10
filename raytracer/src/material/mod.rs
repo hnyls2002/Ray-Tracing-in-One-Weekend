@@ -93,11 +93,22 @@ impl Material for Dielectric {
             self.ir
         };
         let unit_direction = r_in.direction().unit_vec();
-        let refracted = refract(&unit_direction, &rec.normal, refraction_ratio);
+
+        let cos_theta = dot(&-unit_direction, &rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
+
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
+        let direction = if cannot_refract {
+            reflect(&unit_direction, &rec.normal)
+        } else {
+            refract(&unit_direction, &rec.normal, refraction_ratio)
+        };
+
         *scattered = Ray {
             orig: rec.p,
-            dir: refracted,
+            dir: direction,
         };
+
         true
     }
 }
