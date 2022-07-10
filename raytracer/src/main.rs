@@ -2,7 +2,7 @@ use console::style;
 use hittablelist::hittable::{HitRecord, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
-use std::{fs::File, process::exit, sync::Arc};
+use std::{fs::File, process::exit};
 
 mod camera;
 mod hittablelist;
@@ -22,9 +22,7 @@ use crate::{
         },
         Camera,
     },
-    hittablelist::HittableList,
-    material::{Dielectric, Lambertian, Metal},
-    sphere::Sphere,
+    hittablelist::random_scene,
 };
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
@@ -68,63 +66,37 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
     *pixel = image::Rgb([r, g, b]);
 }
 
+fn output_image(path: &str, img: &RgbImage, quality: u8) {
+    println!("Ouput image as \"{}\"", style(path).yellow());
+    let output_image = image::DynamicImage::ImageRgb8(img.clone());
+    let mut output_file = File::create(path).unwrap();
+    match output_image.write_to(&mut output_file, image::ImageOutputFormat::Jpeg(quality)) {
+        Ok(_) => {}
+        // Err(_) => panic!("Outputting image fails."),
+        Err(_) => println!("{}", style("Outputting image fails.").red()),
+    }
+}
+
 fn main() {
-    let path = "output/image20.jpg";
+    let path = "output/image21.jpg";
 
     // Image
-    let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400;
+    let aspect_ratio = 3.0 / 2.0;
+    let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 500;
     let max_depth = 50;
 
     // World
-    let mut world = HittableList { objects: vec![] };
 
-    let material_ground = Arc::new(Lambertian {
-        albedo: Color::new(0.8, 0.8, 0.0),
-    });
-    let material_center = Arc::new(Lambertian {
-        albedo: Color::new(0.1, 0.2, 0.5),
-    });
-    let material_left = Arc::new(Dielectric { ir: 1.5 });
-    let material_right = Arc::new(Metal {
-        albedo: Color::new(0.8, 0.6, 0.2),
-        fuzz: 0.0,
-    });
-
-    world.add(Box::new(Sphere {
-        center: Point3::new(0.0, -100.5, -1.0),
-        radius: 100.0,
-        mat_ptr: Some(material_ground),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(0.0, 0.0, -1.0),
-        radius: 0.5,
-        mat_ptr: Some(material_center),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(-1.0, 0.0, -1.0),
-        radius: 0.5,
-        mat_ptr: Some(material_left.clone()),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(-1.0, 0.0, -1.0),
-        radius: -0.45,
-        mat_ptr: Some(material_left),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(1.0, 0.0, -1.0),
-        radius: 0.5,
-        mat_ptr: Some(material_right),
-    }));
+    let world = random_scene();
 
     // Camera
-    let lookfrom = Point3::new(3.0, 3.0, 2.0);
-    let lookat = Point3::new(0.0, 0.0, -1.0);
+    let lookfrom = Point3::new(13.0, 2.0, 3.0);
+    let lookat = Point3::new(0.0, 0.0, 0.0);
     let vup = Vec3(0.0, 1.0, 0.0);
-    let dist_to_focus = (lookfrom - lookat).length();
-    let aperture = 2.0;
+    let dist_to_focus = 10.0;
+    let aperture = 0.1;
 
     let cam = Camera::new(
         &lookfrom,
@@ -173,14 +145,7 @@ fn main() {
     }
     progress.finish();
 
-    println!("Ouput image as \"{}\"", style(path).yellow());
-    let output_image = image::DynamicImage::ImageRgb8(img);
-    let mut output_file = File::create(path).unwrap();
-    match output_image.write_to(&mut output_file, image::ImageOutputFormat::Jpeg(quality)) {
-        Ok(_) => {}
-        // Err(_) => panic!("Outputting image fails."),
-        Err(_) => println!("{}", style("Outputting image fails.").red()),
-    }
+    output_image(path, &img, quality);
 
     exit(0);
 }
