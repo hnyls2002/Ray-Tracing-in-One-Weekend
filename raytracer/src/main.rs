@@ -69,7 +69,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image18.jpg";
+    let path = "output/image19.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -124,7 +124,7 @@ fn main() {
         &Point3::new(-2.0, 2.0, 1.0),
         &Point3::new(0.0, 0.0, -1.0),
         &Vec3(0.0, 1.0, 0.0),
-        90.0,
+        20.0,
         aspect_ratio,
     );
 
