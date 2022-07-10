@@ -8,10 +8,9 @@ pub use std::f64::INFINITY;
 use rand::Rng;
 
 // Utility Functions
-/*
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0
-} */
+}
 
 pub fn random_double_unit() -> f64 {
     let mut rng = rand::thread_rng();

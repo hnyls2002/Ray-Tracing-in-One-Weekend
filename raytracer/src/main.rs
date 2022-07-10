@@ -10,7 +10,7 @@ mod material;
 mod sphere;
 
 use camera::rtweekend::{
-    clamp, INFINITY,
+    clamp, INFINITY, PI,
     {ray::Ray, vec3::Color},
 };
 
@@ -20,7 +20,7 @@ use crate::{
         Camera,
     },
     hittablelist::HittableList,
-    material::{Dielectric, Lambertian, Metal},
+    material::Lambertian,
     sphere::Sphere,
 };
 
@@ -66,7 +66,7 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
 }
 
 fn main() {
-    let path = "output/image16.jpg";
+    let path = "output/image17.jpg";
 
     // Image
     let aspect_ratio = 16.0 / 9.0;
@@ -76,48 +76,32 @@ fn main() {
     let max_depth = 50;
 
     // World
+    #[allow(non_snake_case)]
+    let R: f64 = (PI / 4.0).cos();
+
     let mut world = HittableList { objects: vec![] };
 
-    let material_ground = Arc::new(Lambertian {
-        albedo: Color::new(0.8, 0.8, 0.0),
+    let material_left = Arc::new(Lambertian {
+        albedo: Color::new(0.0, 0.0, 1.0),
     });
-    let material_center = Arc::new(Lambertian {
-        albedo: Color::new(0.1, 0.2, 0.5),
-    });
-    let material_left = Arc::new(Dielectric { ir: 1.5 });
-    let material_right = Arc::new(Metal {
-        albedo: Color::new(0.8, 0.6, 0.2),
-        fuzz: 0.0,
+    let material_right = Arc::new(Lambertian {
+        albedo: Color::new(1.0, 0.0, 0.0),
     });
 
     world.add(Box::new(Sphere {
-        center: Point3::new(0.0, -100.5, -1.0),
-        radius: 100.0,
-        mat_ptr: Some(material_ground),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(0.0, 0.0, -1.0),
-        radius: 0.5,
-        mat_ptr: Some(material_center),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(-1.0, 0.0, -1.0),
-        radius: 0.5,
-        mat_ptr: Some(material_left.clone()),
-    }));
-    world.add(Box::new(Sphere {
-        center: Point3::new(-1.0, 0.0, -1.0),
-        radius: -0.4,
+        center: Point3::new(-R, 0.0, -1.0),
+        radius: R,
         mat_ptr: Some(material_left),
     }));
+
     world.add(Box::new(Sphere {
-        center: Point3::new(1.0, 0.0, -1.0),
-        radius: 0.5,
+        center: Point3::new(R, 0.0, -1.0),
+        radius: R,
         mat_ptr: Some(material_right),
     }));
 
     // Camera
-    let cam = Camera::default();
+    let cam = Camera::new(90.0, aspect_ratio);
 
     let quality = 60;
     let mut img: RgbImage = ImageBuffer::new(image_width, image_height);

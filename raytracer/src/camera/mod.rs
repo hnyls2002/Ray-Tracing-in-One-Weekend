@@ -1,4 +1,5 @@
 use self::rtweekend::{
+    degrees_to_radians,
     ray::Ray,
     vec3::{Point3, Vec3},
 };
@@ -13,11 +14,16 @@ pub struct Camera {
     vertical: Vec3,
 }
 
-impl Default for Camera {
-    fn default() -> Self {
-        let aspect_ratio = 16.0 / 9.0;
-        let viewport_height = 2.0;
+impl Camera {
+    pub fn new(
+        vfov: f64, // vertical field-of-view in degrees
+        aspect_ratio: f64,
+    ) -> Self {
+        let theta = degrees_to_radians(vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
+
         let focal_length = 1.0;
 
         let origin = Point3::new(0.0, 0.0, 0.0);
