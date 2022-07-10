@@ -1,7 +1,7 @@
 use self::rtweekend::{
     degrees_to_radians,
     ray::Ray,
-    vec3::{Point3, Vec3},
+    vec3::{cross, Point3, Vec3},
 };
 
 pub mod rtweekend;
@@ -16,6 +16,9 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
+        lookfrom: &Point3,
+        lookat: &Point3,
+        vup: &Vec3,
         vfov: f64, // vertical field-of-view in degrees
         aspect_ratio: f64,
     ) -> Self {
@@ -24,13 +27,14 @@ impl Camera {
         let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
 
-        let focal_length = 1.0;
+        let w = (*lookfrom - *lookat).unit_vec();
+        let u = cross(vup, &w).unit_vec();
+        let v = cross(&w, &u);
 
-        let origin = Point3::new(0.0, 0.0, 0.0);
-        let horizontal = Vec3(viewport_width, 0.0, 0.0);
-        let vertical = Vec3(0.0, viewport_height, 0.0);
-        let lower_left_corner =
-            origin - horizontal / 2.0 - vertical / 2.0 - Vec3(0.0, 0.0, focal_length);
+        let origin = *lookfrom;
+        let horizontal = u * viewport_width;
+        let vertical = v * viewport_height;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
 
         Camera {
             origin,
