@@ -8,6 +8,7 @@ use image::{ImageBuffer, Rgb, RgbImage};
 use std::{
     fs::File,
     process::exit,
+    sync::{Arc, Mutex},
     thread::{self, JoinHandle},
 };
 
@@ -34,9 +35,9 @@ use crate::{
 
 // Image
 const ASPECT_RATIO: f64 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 400;
+const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 100;
+const SAMPLES_PER_PIXEL: u32 = 500;
 const MAX_DEPTH: i32 = 50;
 
 // Camera
@@ -48,7 +49,6 @@ const APERTURE: f64 = 0.1;
 
 // Threads
 const THREAD_NUM: u32 = 20;
-const LINES_PER_SECTION: u32 = IMAGE_HEIGHT / THREAD_NUM;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     let mut rec: HitRecord = Default::default();
@@ -103,34 +103,38 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
 }
 
 fn create_thread(
-    thread_id: u32,
+    line_pool: Arc<Mutex<u32>>,
     world: HittableList,
     cam: Camera,
-) -> JoinHandle<(Vec<Color>, u32, u32)> {
-    let line_beg = thread_id * LINES_PER_SECTION;
-    let mut line_end = line_beg + LINES_PER_SECTION;
-    if line_end > IMAGE_HEIGHT || (thread_id == THREAD_NUM - 1 && line_end < IMAGE_HEIGHT) {
-        line_end = IMAGE_HEIGHT;
-    }
-
-    let mut ret = Vec::<Color>::new();
+) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
+    let mut ret = Vec::<_>::new();
     thread::spawn(move || {
-        for y in line_beg..line_end {
-            for x in 0..IMAGE_WIDTH {
-                let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
+        loop {
+            let mut num = line_pool.lock().unwrap();
+            if *num == IMAGE_HEIGHT {
+                break;
+            }
+            let py = *num;
+            *num += 1_u32;
+            println!("now line at {}", *num);
+            std::mem::drop(num);
 
+            let mut line_color = Vec::<Color>::new();
+
+            for px in 0..IMAGE_WIDTH {
+                let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
                 for _s in 0..SAMPLES_PER_PIXEL {
                     // a bunch of rays hitting the object
-                    let u = (x as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
-                    let v = (y as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
+                    let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
+                    let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
                     let r = cam.get_ray(u, v);
                     pixel_colors += ray_color(&r, &world, MAX_DEPTH);
                 }
-
-                ret.push(pixel_colors);
+                line_color.push(pixel_colors);
             }
+            ret.push((py, line_color));
         }
-        (ret, line_beg, line_end)
+        ret
     })
 }
 
@@ -154,10 +158,10 @@ fn main() {
 
     let mut thread_list = Vec::<_>::new();
 
-    //let pixel_pool = Arc::new((0 as u32, 0 as u32));
+    let line_pool = Arc::new(Mutex::new(0_u32));
 
-    for id in 0..THREAD_NUM {
-        thread_list.push(create_thread(id, world.clone(), cam));
+    for _id in 0..THREAD_NUM {
+        thread_list.push(create_thread(line_pool.clone(), world.clone(), cam));
     }
 
     let quality = 60;
@@ -165,11 +169,12 @@ fn main() {
 
     for _id in 0..THREAD_NUM {
         match thread_list.remove(0).join() {
-            Ok((mut res, line_beg, line_end)) => {
-                for y in line_beg..line_end {
-                    for x in 0..IMAGE_WIDTH {
-                        let pixel = img.get_pixel_mut(x, IMAGE_HEIGHT - y - 1);
-                        write_color(pixel, &res.remove(0));
+            Ok(res) => {
+                for line in res {
+                    let py = line.0;
+                    for px in 0..IMAGE_WIDTH {
+                        let pixel = img.get_pixel_mut(px, IMAGE_HEIGHT - py - 1);
+                        write_color(pixel, &line.1[px as usize]);
                     }
                 }
             }
