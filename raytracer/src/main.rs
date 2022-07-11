@@ -4,6 +4,7 @@ use hittablelist::{
     HittableList,
 };
 use image::{ImageBuffer, Rgb, RgbImage};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 use std::{
     fs::File,
@@ -106,9 +107,17 @@ fn create_thread(
     line_pool: Arc<Mutex<u32>>,
     world: HittableList,
     cam: Camera,
+    bars: Arc<MultiProgress>,
 ) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
     let mut ret = Vec::<_>::new();
     thread::spawn(move || {
+        // Set Progress Bar for this thread
+        let now_bar = bars.add(ProgressBar::new((IMAGE_HEIGHT / THREAD_NUM) as u64));
+        now_bar.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
+        .progress_chars("#>-"));
+
+        // Catch one avaliable line
         loop {
             let mut num = line_pool.lock().unwrap();
             if *num == IMAGE_HEIGHT {
@@ -116,8 +125,9 @@ fn create_thread(
             }
             let py = *num;
             *num += 1_u32;
-            println!("now line at {}", *num);
             std::mem::drop(num);
+
+            now_bar.inc(1);
 
             let mut line_color = Vec::<Color>::new();
 
@@ -134,6 +144,7 @@ fn create_thread(
             }
             ret.push((py, line_color));
         }
+        now_bar.finish_with_message("Finished.");
         ret
     })
 }
@@ -156,16 +167,32 @@ fn main() {
         DIST_TO_FOCUS,
     );
 
+    // Threads
     let mut thread_list = Vec::<_>::new();
-
     let line_pool = Arc::new(Mutex::new(0_u32));
 
+    // Threads: progress bar
+    let multiprogress = Arc::new(MultiProgress::new());
+    multiprogress.set_move_cursor(true);
+
     for _id in 0..THREAD_NUM {
-        thread_list.push(create_thread(line_pool.clone(), world.clone(), cam));
+        thread_list.push(create_thread(
+            line_pool.clone(),
+            world.clone(),
+            cam,
+            multiprogress.clone(),
+        ));
     }
 
+    multiprogress.join().unwrap();
+
+    // Generating Image
     let quality = 60;
     let mut img: RgbImage = ImageBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    // Generating Image: Progress Bar
+    let generating_progress_bar = ProgressBar::new(IMAGE_HEIGHT as u64);
+    println!("Generating Image\nPlease Waiting...");
 
     for _id in 0..THREAD_NUM {
         match thread_list.remove(0).join() {
@@ -176,11 +203,13 @@ fn main() {
                         let pixel = img.get_pixel_mut(px, IMAGE_HEIGHT - py - 1);
                         write_color(pixel, &line.1[px as usize]);
                     }
+                    generating_progress_bar.inc(1);
                 }
             }
             Err(_) => println!("Thread Failed!!!"),
         }
     }
+    generating_progress_bar.finish();
 
     output_image(path, &img, quality);
 
