@@ -1,11 +1,3 @@
-use console::style;
-use hittablelist::{
-    hittable::{HitRecord, Hittable},
-    HittableList,
-};
-use image::{ImageBuffer, Rgb, RgbImage};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-
 use std::{
     fs::File,
     process::exit,
@@ -13,26 +5,28 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use camera::Camera;
+use console::style;
+use hittablelist::{
+    hittable::{HitRecord, Hittable},
+    HittableList,
+};
+use image::{ImageBuffer, Rgb, RgbImage};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use rtweekend::{
+    clamp, random_double_unit,
+    ray::Ray,
+    vec3::{Color, Point3, Vec3},
+    INFINITY,
+};
+
+use crate::hittablelist::random_scene;
+
 mod camera;
 mod hittablelist;
 mod material;
+mod rtweekend;
 mod sphere;
-
-use camera::rtweekend::{
-    clamp, INFINITY,
-    {ray::Ray, vec3::Color},
-};
-
-use crate::{
-    camera::{
-        rtweekend::{
-            random_double_unit,
-            vec3::{Point3, Vec3},
-        },
-        Camera,
-    },
-    hittablelist::random_scene,
-};
 
 // Image
 const ASPECT_RATIO: f64 = 3.0 / 2.0;
@@ -167,6 +161,28 @@ fn main() {
         DIST_TO_FOCUS,
     );
 
+    // Show the Image Information
+    {
+        print!("{}[2J", 27 as char); // clear screen
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // set cursor at 1,1
+        println!(
+            "         Image name:                {}",
+            style(path.to_string()).yellow()
+        );
+        println!(
+            "         Image size:                {}",
+            style(IMAGE_WIDTH.to_string() + &"x".to_string() + &IMAGE_HEIGHT.to_string()).yellow()
+        );
+        println!(
+            "         Sample number per pixel:   {}",
+            style(SAMPLES_PER_PIXEL.to_string()).yellow()
+        );
+        println!(
+            "         Reflection max depth:      {}",
+            style(MAX_DEPTH.to_string()).yellow()
+        );
+    }
+
     // Threads
     let mut thread_list = Vec::<_>::new();
     let line_pool = Arc::new(Mutex::new(0_u32));
@@ -174,6 +190,14 @@ fn main() {
     // Threads: progress bar
     let multiprogress = Arc::new(MultiProgress::new());
     multiprogress.set_move_cursor(true);
+
+    // Show the Threads Information
+    println!(
+        "🚀 {} {} {}",
+        style("Rendering with").green(),
+        style(THREAD_NUM.to_string()).yellow(),
+        style("Threads...").green(),
+    );
 
     for _id in 0..THREAD_NUM {
         thread_list.push(create_thread(
@@ -192,7 +216,7 @@ fn main() {
 
     // Generating Image: Progress Bar
     let generating_progress_bar = ProgressBar::new(IMAGE_HEIGHT as u64);
-    println!("Generating Image\nPlease Waiting...");
+    println!("🚛 {}", style("Filling up Pixels...").green(),);
 
     for _id in 0..THREAD_NUM {
         match thread_list.remove(0).join() {

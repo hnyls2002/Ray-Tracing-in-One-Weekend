@@ -1,10 +1,8 @@
-use self::rtweekend::{
+use crate::rtweekend::{
     degrees_to_radians,
     ray::Ray,
     vec3::{cross, random_in_unit_disk, Point3, Vec3},
 };
-
-pub mod rtweekend;
 
 #[derive(Clone, Copy)]
 #[allow(dead_code)]

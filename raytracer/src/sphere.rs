@@ -1,9 +1,13 @@
 use std::sync::Arc;
 
-use crate::camera::rtweekend::ray::Ray;
-use crate::camera::rtweekend::vec3::{dot, Point3};
-use crate::hittablelist::hittable::{HitRecord, Hittable};
-use crate::material::Material;
+use crate::{
+    hittablelist::hittable::{HitRecord, Hittable},
+    material::Material,
+    rtweekend::{
+        ray::Ray,
+        vec3::{dot, Point3},
+    },
+};
 
 pub struct Sphere {
     pub center: Point3,

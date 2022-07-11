@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use crate::{
-    camera::rtweekend::{
+    material::Material,
+    rtweekend::{
         ray::Ray,
         vec3::{dot, Point3, Vec3},
     },
-    material::Material,
 };
 
 #[derive(Default, Clone)]

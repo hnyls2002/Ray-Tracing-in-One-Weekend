@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    camera::rtweekend::{
+    material::{Dielectric, Lambertian, Material, Metal},
+    rtweekend::{
         random_double, random_double_unit,
         ray::Ray,
         vec3::{Color, Point3},
     },
-    material::{Dielectric, Lambertian, Material, Metal},
     sphere::Sphere,
 };
 

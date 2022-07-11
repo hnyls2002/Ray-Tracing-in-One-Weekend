@@ -1,10 +1,10 @@
 use crate::{
-    camera::rtweekend::{
+    hittablelist::hittable::HitRecord,
+    rtweekend::{
         random_double_unit,
         ray::Ray,
         vec3::{dot, random_in_unit_sphere, random_unit_vector, reflect, refract, Color},
     },
-    hittablelist::hittable::HitRecord,
 };
 
 pub trait Material: Send + Sync {
