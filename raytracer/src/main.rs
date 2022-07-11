@@ -1,8 +1,15 @@
 use console::style;
-use hittablelist::hittable::{HitRecord, Hittable};
+use hittablelist::{
+    hittable::{HitRecord, Hittable},
+    HittableList,
+};
 use image::{ImageBuffer, Rgb, RgbImage};
-use indicatif::{ProgressBar, ProgressStyle};
-use std::{fs::File, process::exit};
+
+use std::{
+    fs::File,
+    process::exit,
+    thread::{self, JoinHandle},
+};
 
 mod camera;
 mod hittablelist;
@@ -24,6 +31,24 @@ use crate::{
     },
     hittablelist::random_scene,
 };
+
+// Image
+const ASPECT_RATIO: f64 = 3.0 / 2.0;
+const IMAGE_WIDTH: u32 = 400;
+const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
+const SAMPLES_PER_PIXEL: u32 = 100;
+const MAX_DEPTH: i32 = 50;
+
+// Camera
+const LOOKFROM: Point3 = Vec3(13.0, 2.0, 3.0);
+const LOOKAT: Point3 = Vec3(0.0, 0.0, 0.0);
+const VUP: Vec3 = Vec3(0.0, 1.0, 0.0);
+const DIST_TO_FOCUS: f64 = 10.0;
+const APERTURE: f64 = 0.1;
+
+// Threads
+const THREAD_NUM: u32 = 20;
+const LINES_PER_SECTION: u32 = IMAGE_HEIGHT / THREAD_NUM;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     let mut rec: HitRecord = Default::default();
@@ -47,10 +72,10 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
 }
 
-fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32) {
-    let r = pixel_colors.0 / (samples_per_pixel as f64);
-    let g = pixel_colors.1 / (samples_per_pixel as f64);
-    let b = pixel_colors.2 / (samples_per_pixel as f64);
+fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color) {
+    let r = pixel_colors.0 / (SAMPLES_PER_PIXEL as f64);
+    let g = pixel_colors.1 / (SAMPLES_PER_PIXEL as f64);
+    let b = pixel_colors.2 / (SAMPLES_PER_PIXEL as f64);
 
     // Gamma-correct for gamma=2.0
     let r = r.sqrt();
@@ -77,73 +102,80 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
     }
 }
 
+fn create_thread(
+    thread_id: u32,
+    world: HittableList,
+    cam: Camera,
+) -> JoinHandle<(Vec<Color>, u32, u32)> {
+    let line_beg = thread_id * LINES_PER_SECTION;
+    let mut line_end = line_beg + LINES_PER_SECTION;
+    if line_end > IMAGE_HEIGHT || (thread_id == THREAD_NUM - 1 && line_end < IMAGE_HEIGHT) {
+        line_end = IMAGE_HEIGHT;
+    }
+
+    let mut ret = Vec::<Color>::new();
+    thread::spawn(move || {
+        for y in line_beg..line_end {
+            for x in 0..IMAGE_WIDTH {
+                let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
+
+                for _s in 0..SAMPLES_PER_PIXEL {
+                    // a bunch of rays hitting the object
+                    let u = (x as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
+                    let v = (y as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
+                    let r = cam.get_ray(u, v);
+                    pixel_colors += ray_color(&r, &world, MAX_DEPTH);
+                }
+
+                ret.push(pixel_colors);
+            }
+        }
+        (ret, line_beg, line_end)
+    })
+}
+
 fn main() {
+    // Output Path
     let path = "output/image21.jpg";
 
-    // Image
-    let aspect_ratio = 3.0 / 2.0;
-    let image_width = 1200;
-    let image_height = (image_width as f64 / aspect_ratio) as u32;
-    let samples_per_pixel = 500;
-    let max_depth = 50;
-
     // World
-
     let world = random_scene();
 
     // Camera
-    let lookfrom = Point3::new(13.0, 2.0, 3.0);
-    let lookat = Point3::new(0.0, 0.0, 0.0);
-    let vup = Vec3(0.0, 1.0, 0.0);
-    let dist_to_focus = 10.0;
-    let aperture = 0.1;
-
     let cam = Camera::new(
-        &lookfrom,
-        &lookat,
-        &vup,
+        &LOOKFROM,
+        &LOOKAT,
+        &VUP,
         20.0,
-        aspect_ratio,
-        aperture,
-        dist_to_focus,
+        ASPECT_RATIO,
+        APERTURE,
+        DIST_TO_FOCUS,
     );
 
-    let quality = 60;
-    let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
+    let mut thread_list = Vec::<_>::new();
 
-    let progress = if option_env!("CI").unwrap_or_default() == "true" {
-        ProgressBar::hidden()
-    } else {
-        ProgressBar::new(image_height as u64)
-    };
-    progress.set_style(ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
-        .progress_chars("#>-"));
+    //let pixel_pool = Arc::new((0 as u32, 0 as u32));
 
-    /*    println!("P3");
-        println!("{} {}",image_width,image_height);
-        println!("255");
-    */
-
-    for j in (0..image_height).rev() {
-        for i in 0..image_width {
-            let pixel = img.get_pixel_mut(i, image_height - j - 1);
-
-            let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
-
-            for _s in 0..samples_per_pixel {
-                // a bunch of rays hitting the object
-                let u = (i as f64 + random_double_unit()) / (image_width - 1) as f64;
-                let v = (j as f64 + random_double_unit()) / (image_height - 1) as f64;
-                let r = cam.get_ray(u, v);
-                pixel_colors += ray_color(&r, &world, max_depth);
-            }
-
-            write_color(pixel, &pixel_colors, samples_per_pixel);
-        }
-        progress.inc(1);
+    for id in 0..THREAD_NUM {
+        thread_list.push(create_thread(id, world.clone(), cam));
     }
-    progress.finish();
+
+    let quality = 60;
+    let mut img: RgbImage = ImageBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    for _id in 0..THREAD_NUM {
+        match thread_list.remove(0).join() {
+            Ok((mut res, line_beg, line_end)) => {
+                for y in line_beg..line_end {
+                    for x in 0..IMAGE_WIDTH {
+                        let pixel = img.get_pixel_mut(x, IMAGE_HEIGHT - y - 1);
+                        write_color(pixel, &res.remove(0));
+                    }
+                }
+            }
+            Err(_) => println!("Thread Failed!!!"),
+        }
+    }
 
     output_image(path, &img, quality);
 

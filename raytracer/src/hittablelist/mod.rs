@@ -14,8 +14,9 @@ use self::hittable::{HitRecord, Hittable};
 
 pub mod hittable;
 
+#[derive(Clone)]
 pub struct HittableList {
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Arc<dyn Hittable>>,
 }
 
 #[allow(dead_code)]
@@ -23,7 +24,7 @@ impl HittableList {
     pub fn clear(&mut self) {
         self.objects.clear();
     }
-    pub fn add(&mut self, object: Box<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object);
     }
 }
@@ -51,7 +52,7 @@ pub fn random_scene() -> HittableList {
     let ground_material = Arc::new(Lambertian {
         albedo: Color::new(0.5, 0.5, 0.5),
     });
-    world.add(Box::new(Sphere {
+    world.add(Arc::new(Sphere {
         center: Point3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
         mat_ptr: Some(ground_material),
@@ -78,7 +79,7 @@ pub fn random_scene() -> HittableList {
                 } else {
                     Arc::new(Dielectric { ir: 1.5 })
                 };
-                world.add(Box::new(Sphere {
+                world.add(Arc::new(Sphere {
                     center,
                     radius: 0.2,
                     mat_ptr: Some(sphere_material),
@@ -95,19 +96,19 @@ pub fn random_scene() -> HittableList {
         fuzz: 0.0,
     });
 
-    world.add(Box::new(Sphere {
+    world.add(Arc::new(Sphere {
         center: Point3::new(0.0, 1.0, 0.0),
         radius: 1.0,
         mat_ptr: Some(material1),
     }));
 
-    world.add(Box::new(Sphere {
+    world.add(Arc::new(Sphere {
         center: Point3::new(-4.0, 1.0, 0.0),
         radius: 1.0,
         mat_ptr: Some(material2),
     }));
 
-    world.add(Box::new(Sphere {
+    world.add(Arc::new(Sphere {
         center: Point3::new(4.0, 1.0, 0.0),
         radius: 1.0,
         mat_ptr: Some(material3),
