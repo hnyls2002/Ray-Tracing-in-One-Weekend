@@ -1,5 +1,5 @@
 use crate::rtweekend::{
-    degrees_to_radians,
+    degrees_to_radians, random_double,
     ray::Ray,
     vec3::{cross, random_in_unit_disk, Point3, Vec3},
 };
@@ -15,9 +15,12 @@ pub struct Camera {
     v: Vec3,
     w: Vec3,
     lens_radius: f64,
+    time0: f64,
+    time1: f64,
 }
 
 impl Camera {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         lookfrom: &Point3,
         lookat: &Point3,
@@ -26,6 +29,8 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        time0: f64,
+        time1: f64,
     ) -> Self {
         let theta = degrees_to_radians(vfov);
         let h = (theta / 2.0).tan();
@@ -50,6 +55,8 @@ impl Camera {
             u,
             v,
             lens_radius: aperture / 2.0,
+            time0,
+            time1,
         }
     }
 }
@@ -63,6 +70,7 @@ impl Camera {
             dir: self.lower_left_corner + self.horizontal * s + self.vertical * t
                 - self.origin
                 - offset,
+            tm: random_double(self.time0, self.time1), // shutter open/close times
         }
     }
 }

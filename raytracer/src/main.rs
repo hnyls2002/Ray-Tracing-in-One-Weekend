@@ -25,14 +25,15 @@ use crate::hittablelist::random_scene;
 mod camera;
 mod hittablelist;
 mod material;
+mod moving_sphere;
 mod rtweekend;
 mod sphere;
 
 // Image
-const ASPECT_RATIO: f64 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 1200;
+const ASPECT_RATIO: f64 = 16.0 / 9.0;
+const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 500;
+const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: i32 = 50;
 
 // Camera
@@ -145,7 +146,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image21.jpg";
+    let path = "output/image2-1.jpg";
 
     // World
     let world = random_scene();
@@ -159,6 +160,8 @@ fn main() {
         ASPECT_RATIO,
         APERTURE,
         DIST_TO_FOCUS,
+        0.0,
+        1.0,
     );
 
     // Show the Image Information

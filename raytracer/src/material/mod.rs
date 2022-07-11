@@ -24,7 +24,7 @@ pub struct Lambertian {
 impl Material for Lambertian {
     fn scatter(
         &self,
-        _r_in: &Ray,
+        r_in: &Ray,
         rec: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
@@ -39,6 +39,7 @@ impl Material for Lambertian {
         *scattered = Ray {
             orig: rec.p,
             dir: scatter_direction,
+            tm: r_in.tm,
         };
         *attenuation = self.albedo;
         true
@@ -69,6 +70,7 @@ impl Material for Metal {
                         1.0
                     }
                 },
+            tm: r_in.tm,
         };
         *attenuation = self.albedo;
         dot(&scattered.direction(), &rec.normal) > 0.0
@@ -117,6 +119,7 @@ impl Material for Dielectric {
         *scattered = Ray {
             orig: rec.p,
             dir: direction,
+            tm: r_in.tm,
         };
 
         true

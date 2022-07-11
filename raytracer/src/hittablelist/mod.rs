@@ -2,10 +2,11 @@ use std::sync::Arc;
 
 use crate::{
     material::{Dielectric, Lambertian, Material, Metal},
+    moving_sphere::MovingSphere,
     rtweekend::{
         random_double, random_double_unit,
         ray::Ray,
-        vec3::{Color, Point3},
+        vec3::{Color, Point3, Vec3},
     },
     sphere::Sphere,
 };
@@ -79,11 +80,23 @@ pub fn random_scene() -> HittableList {
                 } else {
                     Arc::new(Dielectric { ir: 1.5 })
                 };
-                world.add(Arc::new(Sphere {
-                    center,
-                    radius: 0.2,
-                    mat_ptr: Some(sphere_material),
-                }));
+                world.add(if choose_mat < 0.8 {
+                    let center2 = center + Vec3(0.0, random_double(0.0, 0.5), 0.0);
+                    Arc::new(MovingSphere {
+                        center0: center,
+                        center1: center2,
+                        time0: 0.0,
+                        time1: 1.0,
+                        radius: 0.2,
+                        mat_ptr: Some(sphere_material),
+                    })
+                } else {
+                    Arc::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        mat_ptr: Some(sphere_material),
+                    })
+                });
             }
         }
     }
