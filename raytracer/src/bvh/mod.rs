@@ -3,7 +3,10 @@ use std::{cmp::Ordering, sync::Arc};
 use rand::Rng;
 
 use crate::{
-    hittablelist::hittable::{HitRecord, Hittable},
+    hittablelist::{
+        hittable::{HitRecord, Hittable},
+        HittableList,
+    },
     rtweekend::ray::Ray,
 };
 
@@ -114,6 +117,10 @@ impl BvhNode {
             right,
             box_: surrounding_box(&box_left, &box_right),
         }
+    }
+    pub fn new_list(list: HittableList, time0: f64, time1: f64) -> BvhNode {
+        let tmp_len = list.objects.len();
+        BvhNode::new(list.objects, 0, tmp_len, time0, time1)
     }
     fn box_compare(a: Arc<dyn Hittable>, b: Arc<dyn Hittable>, axis: usize) -> bool {
         let mut box_a = Aabb::default();

@@ -5,14 +5,14 @@ use crate::rtweekend::{
     vec3::{Point3, Vec3},
 };
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct Aabb {
     pub minimum: Point3,
     pub maximum: Point3,
 }
 
 impl Aabb {
-    pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> bool {
+    pub fn hit(&self, r: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
         for a in 0..3 {
             let inv_d = 1.0 / r.dir[a];
             let mut t0 = (self.min()[a] - r.orig[a]) * inv_d;
@@ -20,8 +20,8 @@ impl Aabb {
             if inv_d < 0.0 {
                 swap(&mut t0, &mut t1);
             }
-            t_min.max(t0);
-            t_max.min(t1);
+            t_min = t_min.max(t0);
+            t_max = t_max.min(t1);
             if t_max <= t_min {
                 return false;
             }

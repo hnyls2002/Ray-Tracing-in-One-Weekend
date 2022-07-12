@@ -7,10 +7,7 @@ use std::{
 
 use camera::Camera;
 use console::style;
-use hittablelist::{
-    hittable::{HitRecord, Hittable},
-    HittableList,
-};
+use hittablelist::hittable::{HitRecord, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rtweekend::{
@@ -20,7 +17,7 @@ use rtweekend::{
     INFINITY,
 };
 
-use crate::hittablelist::random_scene;
+use crate::{bvh::BvhNode, hittablelist::random_scene};
 
 mod bvh;
 mod camera;
@@ -101,7 +98,7 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
 
 fn create_thread(
     line_pool: Arc<Mutex<u32>>,
-    world: HittableList,
+    world: BvhNode,
     cam: Camera,
     bars: Arc<MultiProgress>,
 ) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
@@ -150,7 +147,7 @@ fn main() {
     let path = "output/image2-2.jpg";
 
     // World
-    let world = random_scene();
+    let world = BvhNode::new_list(random_scene(), 0.0, 1.0);
 
     // Camera
     let cam = Camera::new(
