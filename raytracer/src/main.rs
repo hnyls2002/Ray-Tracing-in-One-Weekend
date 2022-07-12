@@ -22,6 +22,7 @@ use rtweekend::{
 
 use crate::hittablelist::random_scene;
 
+mod bvh;
 mod camera;
 mod hittablelist;
 mod material;
@@ -146,7 +147,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-1.jpg";
+    let path = "output/image2-2.jpg";
 
     // World
     let world = random_scene();

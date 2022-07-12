@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
+    bvh::aabb::Aabb,
     hittablelist::hittable::{HitRecord, Hittable},
     material::Material,
     rtweekend::{
         ray::Ray,
-        vec3::{dot, Point3},
+        vec3::{dot, Point3, Vec3},
     },
 };
 
@@ -39,6 +40,14 @@ impl Hittable for Sphere {
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, &outward_normal);
         rec.mat_ptr = self.mat_ptr.clone();
+        true
+    }
+    fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut Aabb) -> bool {
+        let cube = Vec3(self.radius, self.radius, self.radius);
+        *output_box = Aabb {
+            minimum: self.center - cube,
+            maximum: self.center + cube,
+        };
         true
     }
 }

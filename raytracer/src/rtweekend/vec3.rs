@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Sub};
 use std::ops::{AddAssign, DivAssign, MulAssign, Neg};
 
 use super::{random_double, random_double_unit};
@@ -63,6 +63,19 @@ impl Div<f64> for Vec3 {
     type Output = Self;
     fn div(self, rhs: f64) -> Self::Output {
         Self(self.0 / rhs, self.1 / rhs, self.2 / rhs)
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+    fn index(&self, index: usize) -> &f64 {
+        if index == 0 {
+            &self.0
+        } else if index == 1 {
+            &self.1
+        } else {
+            &self.2
+        }
     }
 }
 
