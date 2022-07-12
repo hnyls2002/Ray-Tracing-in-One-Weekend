@@ -43,6 +43,7 @@ const APERTURE: f64 = 0.1;
 
 // Threads
 const THREAD_NUM: u32 = 20;
+const LINES_PER_ISSUE: u32 = 10;
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     let mut rec: HitRecord = Default::default();
@@ -113,29 +114,36 @@ fn create_thread(
         // Catch one avaliable line
         loop {
             let mut num = line_pool.lock().unwrap();
-            if *num == IMAGE_HEIGHT {
+            if *num >= IMAGE_HEIGHT {
                 break;
             }
-            let py = *num;
-            *num += 1_u32;
+            let py0 = *num;
+            let py1 = if py0 + LINES_PER_ISSUE <= IMAGE_HEIGHT {
+                py0 + LINES_PER_ISSUE
+            } else {
+                IMAGE_HEIGHT
+            };
+            *num += LINES_PER_ISSUE;
             std::mem::drop(num);
 
-            now_bar.inc(1);
+            for py in py0..py1 {
+                now_bar.inc(1);
 
-            let mut line_color = Vec::<Color>::new();
+                let mut line_color = Vec::<Color>::new();
 
-            for px in 0..IMAGE_WIDTH {
-                let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
-                for _s in 0..SAMPLES_PER_PIXEL {
-                    // a bunch of rays hitting the object
-                    let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
-                    let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
-                    let r = cam.get_ray(u, v);
-                    pixel_colors += ray_color(&r, &world, MAX_DEPTH);
+                for px in 0..IMAGE_WIDTH {
+                    let mut pixel_colors = Color::new(0.0, 0.0, 0.0);
+                    for _s in 0..SAMPLES_PER_PIXEL {
+                        // a bunch of rays hitting the object
+                        let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
+                        let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
+                        let r = cam.get_ray(u, v);
+                        pixel_colors += ray_color(&r, &world, MAX_DEPTH);
+                    }
+                    line_color.push(pixel_colors);
                 }
-                line_color.push(pixel_colors);
+                ret.push((py, line_color));
             }
-            ret.push((py, line_color));
         }
         now_bar.finish_with_message("Finished.");
         ret
