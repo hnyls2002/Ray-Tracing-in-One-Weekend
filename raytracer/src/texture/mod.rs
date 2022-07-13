@@ -77,6 +77,7 @@ impl NoiseTexture {
 }
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
-        Vec3(1.0, 1.0, 1.0) * (1.0 + self.noise.noise(&(*p * self.scale))) * 0.5
+        //Vec3(1.0, 1.0, 1.0) * (1.0 + self.noise.noise(&(*p * self.scale))) * 0.5
+        Vec3(1.0, 1.0, 1.0) * self.noise.turb(&(*p * self.scale), 7)
     }
 }
