@@ -22,9 +22,9 @@ pub struct Camera {
 impl Camera {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        lookfrom: &Point3,
-        lookat: &Point3,
-        vup: &Vec3,
+        lookfrom: Point3,
+        lookat: Point3,
+        vup: Vec3,
         vfov: f64, // vertical field-of-view in degrees
         aspect_ratio: f64,
         aperture: f64,
@@ -37,11 +37,11 @@ impl Camera {
         let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
 
-        let w = (*lookfrom - *lookat).unit_vec();
-        let u = cross(vup, &w).unit_vec();
+        let w = (lookfrom - lookat).unit_vec();
+        let u = cross(&vup, &w).unit_vec();
         let v = cross(&w, &u);
 
-        let origin = *lookfrom;
+        let origin = lookfrom;
         let horizontal = u * viewport_width * focus_dist;
         let vertical = v * viewport_height * focus_dist;
         let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w * focus_dist;

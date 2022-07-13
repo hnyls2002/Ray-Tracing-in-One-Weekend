@@ -24,6 +24,12 @@ pub struct Lambertian {
     pub albedo: Arc<dyn Texture>,
 }
 
+impl Lambertian {
+    pub fn new_by_texture(tex: Arc<dyn Texture>) -> Lambertian {
+        Lambertian { albedo: tex }
+    }
+}
+
 impl Material for Lambertian {
     fn scatter(
         &self,

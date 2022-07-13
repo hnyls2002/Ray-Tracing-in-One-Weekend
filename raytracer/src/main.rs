@@ -13,11 +13,14 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rtweekend::{
     clamp, random_double_unit,
     ray::Ray,
-    vec3::{Color, Point3, Vec3},
+    vec3::{Color, Vec3},
     INFINITY,
 };
 
-use crate::{bvh::BvhNode, hittablelist::random_scene};
+use crate::{
+    bvh::BvhNode,
+    hittablelist::{random_scene, two_spheres},
+};
 
 mod bvh;
 mod camera;
@@ -34,13 +37,6 @@ const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: i32 = 50;
-
-// Camera
-const LOOKFROM: Point3 = Vec3(13.0, 2.0, 3.0);
-const LOOKAT: Point3 = Vec3(0.0, 0.0, 0.0);
-const VUP: Vec3 = Vec3(0.0, 1.0, 0.0);
-const DIST_TO_FOCUS: f64 = 10.0;
-const APERTURE: f64 = 0.1;
 
 // Threads
 const THREAD_NUM: u32 = 20;
@@ -153,20 +149,46 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-2.jpg";
-
-    // World
-    let world = BvhNode::new_list(random_scene(), 0.0, 1.0);
+    let path = "output/image2-3.jpg";
 
     // Camera
+    #[allow(unused_assignments)]
+    let mut lookfrom: Vec3 = Vec3::default();
+    #[allow(unused_assignments)]
+    let mut lookat: Vec3 = Vec3::default();
+    #[allow(unused_assignments)]
+    let mut vfov: f64 = 40.0;
+    let mut aperture = 0.0;
+
+    // World
+    let world;
+    let opt = 0;
+
+    if opt == 1 {
+        world = BvhNode::new_list(random_scene(), 0.0, 1.0);
+        lookfrom = Vec3(13.0, 2.0, 3.0);
+        lookat = Vec3(0.0, 0.0, 0.0);
+        vfov = 20.0;
+        aperture = 0.1;
+    } else {
+        world = BvhNode::new_list(two_spheres(), 0.0, 0.0);
+        lookfrom = Vec3(13.0, 2.0, 3.0);
+        lookat = Vec3(0.0, 0.0, 0.0);
+        vfov = 20.0;
+    }
+
+    // Camera
+    let vup: Vec3 = Vec3(0.0, 1.0, 0.0);
+    let dist_to_focus: f64 = 10.0;
+
     let cam = Camera::new(
-        &LOOKFROM,
-        &LOOKAT,
-        &VUP,
-        20.0,
+        lookfrom,
+        lookat,
+        vup,
+        vfov,
         ASPECT_RATIO,
-        APERTURE,
-        DIST_TO_FOCUS,
+        aperture,
+        dist_to_focus,
         0.0,
         1.0,
     );

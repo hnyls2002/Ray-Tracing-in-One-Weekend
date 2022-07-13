@@ -75,7 +75,7 @@ pub fn random_scene() -> HittableList {
         Color::new(1.0, 0.5, 0.0),
         Color::new(0.9, 0.9, 0.9),
     ));
-    let ground_material = Arc::new(Lambertian { albedo: checker });
+    let ground_material = Arc::new(Lambertian::new_by_texture(checker));
     world.add(Arc::new(Sphere {
         center: Point3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
@@ -92,11 +92,9 @@ pub fn random_scene() -> HittableList {
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let sphere_material: Arc<dyn Material> = if choose_mat < 0.8 {
-                    Arc::new(Lambertian {
-                        albedo: Arc::new(SolidColor::new(
-                            Color::random_unit() * Color::random_unit(),
-                        )),
-                    })
+                    Arc::new(Lambertian::new_by_texture(Arc::new(SolidColor::new(
+                        Color::random_unit() * Color::random_unit(),
+                    ))))
                 } else if choose_mat < 0.95 {
                     Arc::new(Metal {
                         albedo: Color::random(0.5, 1.0),
@@ -126,9 +124,9 @@ pub fn random_scene() -> HittableList {
         }
     }
     let material1 = Arc::new(Dielectric { ir: 1.5 });
-    let material2 = Arc::new(Lambertian {
-        albedo: Arc::new(SolidColor::new(Color::new(0.4, 0.2, 0.1))),
-    });
+    let material2 = Arc::new(Lambertian::new_by_texture(Arc::new(SolidColor::new(
+        Color::new(0.4, 0.2, 0.1),
+    ))));
     let material3 = Arc::new(Metal {
         albedo: Color::new(0.7, 0.6, 0.5),
         fuzz: 0.0,
@@ -152,4 +150,23 @@ pub fn random_scene() -> HittableList {
         mat_ptr: Some(material3),
     }));
     world
+}
+
+pub fn two_spheres() -> HittableList {
+    let mut list = HittableList { objects: vec![] };
+    let checker: Arc<dyn Texture> = Arc::new(CheckerTexture::new_by_color(
+        Color::new(1.0, 0.5, 0.0),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    list.add(Arc::new(Sphere {
+        center: Point3::new(0.0, -10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: Some(Arc::new(Lambertian::new_by_texture(checker.clone()))),
+    }));
+    list.add(Arc::new(Sphere {
+        center: Point3::new(0.0, 10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: Some(Arc::new(Lambertian::new_by_texture(checker))),
+    }));
+    list
 }
