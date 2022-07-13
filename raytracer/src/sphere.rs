@@ -1,3 +1,4 @@
+use crate::rtweekend::PI;
 use std::sync::Arc;
 
 use crate::{
@@ -14,6 +15,15 @@ pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
     pub mat_ptr: Option<Arc<dyn Material>>,
+}
+
+impl Sphere {
+    fn get_sphere_uv(p: &Point3, u: &mut f64, v: &mut f64) {
+        let theta = (-p.1).acos();
+        let phi = (-p.2).atan2(p.0) + PI;
+        *u = phi / (2.0 * PI);
+        *v = theta / PI;
+    }
 }
 
 impl Hittable for Sphere {
@@ -39,6 +49,7 @@ impl Hittable for Sphere {
         rec.p = r.at(rec.t);
         let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, &outward_normal);
+        Sphere::get_sphere_uv(&outward_normal, &mut rec.u, &mut rec.v);
         rec.mat_ptr = self.mat_ptr.clone();
         true
     }

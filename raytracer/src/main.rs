@@ -26,6 +26,7 @@ mod material;
 mod moving_sphere;
 mod rtweekend;
 mod sphere;
+mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 16.0 / 9.0;

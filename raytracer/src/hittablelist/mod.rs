@@ -10,6 +10,7 @@ use crate::{
         vec3::{Color, Point3, Vec3},
     },
     sphere::Sphere,
+    texture::{CheckerTexture, SolidColor, Texture},
 };
 
 use self::hittable::{HitRecord, Hittable};
@@ -70,9 +71,11 @@ impl Hittable for HittableList {
 
 pub fn random_scene() -> HittableList {
     let mut world = HittableList { objects: vec![] };
-    let ground_material = Arc::new(Lambertian {
-        albedo: Color::new(0.5, 0.5, 0.5),
-    });
+    let checker: Arc<dyn Texture> = Arc::new(CheckerTexture::new_by_color(
+        Color::new(1.0, 0.5, 0.0),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    let ground_material = Arc::new(Lambertian { albedo: checker });
     world.add(Arc::new(Sphere {
         center: Point3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
@@ -90,7 +93,9 @@ pub fn random_scene() -> HittableList {
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let sphere_material: Arc<dyn Material> = if choose_mat < 0.8 {
                     Arc::new(Lambertian {
-                        albedo: Color::random_unit() * Color::random_unit(),
+                        albedo: Arc::new(SolidColor::new(
+                            Color::random_unit() * Color::random_unit(),
+                        )),
                     })
                 } else if choose_mat < 0.95 {
                     Arc::new(Metal {
@@ -122,7 +127,7 @@ pub fn random_scene() -> HittableList {
     }
     let material1 = Arc::new(Dielectric { ir: 1.5 });
     let material2 = Arc::new(Lambertian {
-        albedo: Color::new(0.4, 0.2, 0.1),
+        albedo: Arc::new(SolidColor::new(Color::new(0.4, 0.2, 0.1))),
     });
     let material3 = Arc::new(Metal {
         albedo: Color::new(0.7, 0.6, 0.5),

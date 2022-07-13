@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     hittablelist::hittable::HitRecord,
     rtweekend::{
@@ -5,6 +7,7 @@ use crate::{
         ray::Ray,
         vec3::{dot, random_in_unit_sphere, random_unit_vector, reflect, refract, Color},
     },
+    texture::Texture,
 };
 
 pub trait Material: Send + Sync {
@@ -18,7 +21,7 @@ pub trait Material: Send + Sync {
 }
 
 pub struct Lambertian {
-    pub albedo: Color,
+    pub albedo: Arc<dyn Texture>,
 }
 
 impl Material for Lambertian {
@@ -41,7 +44,7 @@ impl Material for Lambertian {
             dir: scatter_direction,
             tm: r_in.tm,
         };
-        *attenuation = self.albedo;
+        *attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
         true
     }
 }
