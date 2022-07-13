@@ -149,7 +149,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-12.jpg";
+    let path = "output/image2-13.jpg";
 
     // Camera
     #[allow(unused_assignments)]

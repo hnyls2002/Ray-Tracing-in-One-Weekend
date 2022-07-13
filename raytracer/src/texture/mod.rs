@@ -77,7 +77,14 @@ impl NoiseTexture {
 }
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
+        // smoothed higer frequency
         //Vec3(1.0, 1.0, 1.0) * (1.0 + self.noise.noise(&(*p * self.scale))) * 0.5
-        Vec3(1.0, 1.0, 1.0) * self.noise.turb(&(*p * self.scale), 7)
+
+        // turbulence
+        //Vec3(1.0, 1.0, 1.0) * self.noise.turb(&(*p * self.scale), 7)
+
+        // marbled texture
+        let tmp = self.scale * p.2 + 10.0 * self.noise.turb(p, 7);
+        Vec3(1.0, 1.0, 1.0) * (1.0 + tmp.sin()) * 0.5
     }
 }
