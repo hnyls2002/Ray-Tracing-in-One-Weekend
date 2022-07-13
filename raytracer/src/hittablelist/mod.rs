@@ -174,7 +174,7 @@ pub fn two_spheres() -> HittableList {
 pub fn two_perlin_spheres() -> HittableList {
     let mut list = HittableList { objects: vec![] };
     // Generate texture
-    let pertext = Arc::new(NoiseTexture::default());
+    let pertext = Arc::new(NoiseTexture::new_by_sc(4.0));
     // Generate material
     let permat = Arc::new(Lambertian { albedo: pertext });
 

@@ -64,10 +64,19 @@ impl Texture for CheckerTexture {
 #[derive(Default)]
 pub struct NoiseTexture {
     noise: Perlin,
+    scale: f64,
 }
 
+impl NoiseTexture {
+    pub fn new_by_sc(sc: f64) -> NoiseTexture {
+        NoiseTexture {
+            noise: Default::default(),
+            scale: sc,
+        }
+    }
+}
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
-        Vec3(1.0, 1.0, 1.0) * self.noise.noise(p)
+        Vec3(1.0, 1.0, 1.0) * self.noise.noise(&(*p * self.scale))
     }
 }
