@@ -1,6 +1,10 @@
+mod perlin;
+
 use std::sync::Arc;
 
-use crate::rtweekend::vec3::{Color, Point3};
+use crate::rtweekend::vec3::{Color, Point3, Vec3};
+
+use self::perlin::Perlin;
 
 pub trait Texture: Sync + Send {
     fn value(&self, u: f64, v: f64, p: &Point3) -> Color;
@@ -54,5 +58,16 @@ impl Texture for CheckerTexture {
         } else {
             self.even.value(u, v, p)
         }
+    }
+}
+
+#[derive(Default)]
+pub struct NoiseTexture {
+    noise: Perlin,
+}
+
+impl Texture for NoiseTexture {
+    fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
+        Vec3(1.0, 1.0, 1.0) * self.noise.noise(p)
     }
 }

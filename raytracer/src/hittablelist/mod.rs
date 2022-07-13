@@ -10,7 +10,7 @@ use crate::{
         vec3::{Color, Point3, Vec3},
     },
     sphere::Sphere,
-    texture::{CheckerTexture, SolidColor, Texture},
+    texture::{CheckerTexture, NoiseTexture, SolidColor, Texture},
 };
 
 use self::hittable::{HitRecord, Hittable};
@@ -168,5 +168,27 @@ pub fn two_spheres() -> HittableList {
         radius: 10.0,
         mat_ptr: Some(Arc::new(Lambertian::new_by_texture(checker))),
     }));
+    list
+}
+
+pub fn two_perlin_spheres() -> HittableList {
+    let mut list = HittableList { objects: vec![] };
+    // Generate texture
+    let pertext = Arc::new(NoiseTexture::default());
+    // Generate material
+    let permat = Arc::new(Lambertian { albedo: pertext });
+
+    list.add(Arc::new(Sphere {
+        center: Vec3(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        mat_ptr: Some(permat.clone()),
+    }));
+
+    list.add(Arc::new(Sphere {
+        center: Vec3(0.0, 2.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Some(permat),
+    }));
+
     list
 }
