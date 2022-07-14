@@ -10,7 +10,7 @@ use crate::{
         vec3::{Color, Point3, Vec3},
     },
     sphere::Sphere,
-    texture::{CheckerTexture, NoiseTexture, SolidColor, Texture},
+    texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor, Texture},
 };
 
 use self::hittable::{HitRecord, Hittable};
@@ -190,5 +190,22 @@ pub fn two_perlin_spheres() -> HittableList {
         mat_ptr: Some(permat),
     }));
 
+    list
+}
+
+pub fn earth() -> HittableList {
+    let earth_texture = Arc::new(ImageTexture::load_image_file(
+        "./raytracer/objects/earthmap.jpg",
+    ));
+    let earth_surface = Arc::new(Lambertian {
+        albedo: earth_texture,
+    });
+    let globe = Arc::new(Sphere {
+        center: Vec3(0.0, 0.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Some(earth_surface),
+    });
+    let mut list = HittableList { objects: vec![] };
+    list.add(globe);
     list
 }

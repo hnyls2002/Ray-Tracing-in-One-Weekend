@@ -19,7 +19,7 @@ use rtweekend::{
 
 use crate::{
     bvh::BvhNode,
-    hittablelist::{random_scene, two_perlin_spheres, two_spheres},
+    hittablelist::{earth, random_scene, two_perlin_spheres, two_spheres},
 };
 
 mod bvh;
@@ -149,7 +149,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-13.jpg";
+    let path = "output/image2-15.jpg";
 
     // Camera
     #[allow(unused_assignments)]
@@ -175,8 +175,13 @@ fn main() {
         lookfrom = Vec3(13.0, 2.0, 3.0);
         lookat = Vec3(0.0, 0.0, 0.0);
         vfov = 20.0;
-    } else {
+    } else if opt == 3 {
         world = BvhNode::new_list(two_perlin_spheres(), 0.0, 0.0);
+        lookfrom = Vec3(13.0, 2.0, 3.0);
+        lookat = Vec3(0.0, 0.0, 0.0);
+        vfov = 20.0;
+    } else {
+        world = BvhNode::new_list(earth(), 0.0, 0.0);
         lookfrom = Vec3(13.0, 2.0, 3.0);
         lookat = Vec3(0.0, 0.0, 0.0);
         vfov = 20.0;
