@@ -233,7 +233,12 @@ pub fn simple_light() -> HittableList {
         y0: 1.0,
         y1: 3.0,
         k: -2.0,
-        mp: difflight,
+        mp: difflight.clone(),
+    }));
+    list.add(Arc::new(Sphere {
+        center: Vec3(0.0, 7.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Some(difflight),
     }));
     list
 }
