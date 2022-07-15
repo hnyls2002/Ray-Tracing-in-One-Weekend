@@ -17,7 +17,7 @@ use crate::{
     texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor, Texture},
 };
 
-use self::hittable::{HitRecord, Hittable};
+use self::hittable::{HitRecord, Hittable, RotateY, Translate};
 
 pub mod hittable;
 
@@ -303,15 +303,29 @@ pub fn cornell_box() -> HittableList {
         k: 555.0,
         mp: white.clone(),
     }));
-    list.add(Arc::new(MyBox::new(
-        Vec3(130.0, 0.0, 65.0),
-        Vec3(295.0, 165.0, 230.0),
+    let mut box1: Arc<dyn Hittable> = Arc::new(MyBox::new(
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(165.0, 330.0, 165.0),
         white.clone(),
-    )));
-    list.add(Arc::new(MyBox::new(
-        Vec3(265.0, 0.0, 295.0),
-        Vec3(430.0, 330.0, 460.0),
+    ));
+    box1 = Arc::new(RotateY::new_by_angle(box1, 15.0));
+    box1 = Arc::new(Translate {
+        ptr: box1,
+        offset: Vec3(265.0, 0.0, 295.0),
+    });
+    list.add(box1);
+
+    let mut box2: Arc<dyn Hittable> = Arc::new(MyBox::new(
+        Vec3(0.0, 0.0, 0.0),
+        Vec3(165.0, 165.0, 165.0),
         white,
-    )));
+    ));
+    box2 = Arc::new(RotateY::new_by_angle(box2, -18.0));
+    box2 = Arc::new(Translate {
+        ptr: box2,
+        offset: Vec3(130.0, 0.0, 65.0),
+    });
+    list.add(box2);
+
     list
 }

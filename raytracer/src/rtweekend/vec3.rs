@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Index, Mul, Sub};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Sub};
 use std::ops::{AddAssign, DivAssign, MulAssign, Neg};
 
 use super::{random_double, random_double_unit};
@@ -75,6 +75,18 @@ impl Index<usize> for Vec3 {
             &self.1
         } else {
             &self.2
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut f64 {
+        if index == 0 {
+            &mut self.0
+        } else if index == 1 {
+            &mut self.1
+        } else {
+            &mut self.2
         }
     }
 }
