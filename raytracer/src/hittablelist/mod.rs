@@ -5,6 +5,7 @@ use crate::{
     material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     objects::{
         aarect::{XYRect, XZRect, YZRect},
+        constant_medium::ConstantMedium,
         moving_sphere::MovingSphere,
         my_box::MyBox,
         sphere::Sphere,
@@ -326,6 +327,31 @@ pub fn cornell_box() -> HittableList {
         offset: Vec3(130.0, 0.0, 65.0),
     });
     list.add(box2);
+
+    list
+}
+
+pub fn cornell_smoke() -> HittableList {
+    let light = Arc::new(DiffuseLight::new_by_color(Vec3(7.0, 7.0, 7.0)));
+    let mut list = cornell_box();
+    list.objects[2] = Arc::new(XZRect {
+        x0: 113.0,
+        x1: 443.0,
+        z0: 127.0,
+        z1: 432.0,
+        k: 554.0,
+        mp: light,
+    });
+    list.objects[6] = Arc::new(ConstantMedium::new_by_color(
+        list.objects[6].clone(),
+        0.01,
+        Vec3(0.0, 0.0, 0.0),
+    ));
+    list.objects[7] = Arc::new(ConstantMedium::new_by_color(
+        list.objects[7].clone(),
+        0.01,
+        Vec3(1.0, 1.0, 1.0),
+    ));
 
     list
 }

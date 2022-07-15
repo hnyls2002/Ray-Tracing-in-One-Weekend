@@ -20,7 +20,8 @@ use rtweekend::{
 use crate::{
     bvh::BvhNode,
     hittablelist::{
-        cornell_box, earth, random_scene, simple_light, two_perlin_spheres, two_spheres,
+        cornell_box, cornell_smoke, earth, random_scene, simple_light, two_perlin_spheres,
+        two_spheres,
     },
 };
 
@@ -161,7 +162,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-20.jpg";
+    let path = "output/image2-21.jpg";
 
     // Camera
     #[allow(unused_assignments)]
@@ -210,8 +211,17 @@ fn main() {
         lookfrom = Vec3(26.0, 3.0, 6.0);
         lookat = Vec3(0.0, 2.0, 0.0);
         vfov = 20.0
-    } else {
+    } else if opt == 6 {
         world = BvhNode::new_list(cornell_box(), 0.0, 0.0);
+        // aspect_ratio = 1.0
+        // image_width = 600
+        // samples_per_pixel = 200
+        background = Color::new(0.0, 0.0, 0.0);
+        lookfrom = Vec3(278.0, 278.0, -800.0);
+        lookat = Vec3(278.0, 278.0, 0.0);
+        vfov = 40.0
+    } else {
+        world = BvhNode::new_list(cornell_smoke(), 0.0, 0.0);
         // aspect_ratio = 1.0
         // image_width = 600
         // samples_per_pixel = 200
