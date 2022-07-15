@@ -19,7 +19,9 @@ use rtweekend::{
 
 use crate::{
     bvh::BvhNode,
-    hittablelist::{earth, random_scene, simple_light, two_perlin_spheres, two_spheres},
+    hittablelist::{
+        cornell_box, earth, random_scene, simple_light, two_perlin_spheres, two_spheres,
+    },
 };
 
 mod bvh;
@@ -31,10 +33,10 @@ mod rtweekend;
 mod texture;
 
 // Image
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const IMAGE_WIDTH: u32 = 400;
+const ASPECT_RATIO: f64 = 1.0;
+const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 400;
+const SAMPLES_PER_PIXEL: u32 = 200;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -159,7 +161,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-17.jpg";
+    let path = "output/image2-18.jpg";
 
     // Camera
     #[allow(unused_assignments)]
@@ -201,13 +203,22 @@ fn main() {
         lookfrom = Vec3(13.0, 2.0, 3.0);
         lookat = Vec3(0.0, 0.0, 0.0);
         vfov = 20.0;
-    } else {
+    } else if opt == 5 {
         world = BvhNode::new_list(simple_light(), 0.0, 0.0);
         // SAMPLES_PER_PIXEL should be 400 or more
         background = Color::new(0.0, 0.0, 0.0);
         lookfrom = Vec3(26.0, 3.0, 6.0);
         lookat = Vec3(0.0, 2.0, 0.0);
         vfov = 20.0
+    } else {
+        world = BvhNode::new_list(cornell_box(), 0.0, 0.0);
+        // aspect_ratio = 1.0
+        // image_width = 600
+        // samples_per_pixel = 200
+        background = Color::new(0.0, 0.0, 0.0);
+        lookfrom = Vec3(278.0, 278.0, -800.0);
+        lookat = Vec3(278.0, 278.0, 0.0);
+        vfov = 40.0
     }
 
     // Camera

@@ -32,6 +32,11 @@ impl Lambertian {
     pub fn new_by_texture(tex: Arc<dyn Texture>) -> Lambertian {
         Lambertian { albedo: tex }
     }
+    pub fn new_by_solid_color(c: &Color) -> Lambertian {
+        Lambertian {
+            albedo: Arc::new(SolidColor::new(*c)),
+        }
+    }
 }
 
 impl Material for Lambertian {
