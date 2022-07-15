@@ -2,14 +2,13 @@ use std::sync::Arc;
 
 use crate::{
     bvh::aabb::{surrounding_box, Aabb},
-    material::{Dielectric, Lambertian, Material, Metal},
-    moving_sphere::MovingSphere,
+    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
+    objects::{aarect::XYRect, moving_sphere::MovingSphere, sphere::Sphere},
     rtweekend::{
         random_double, random_double_unit,
         ray::Ray,
         vec3::{Color, Point3, Vec3},
     },
-    sphere::Sphere,
     texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor, Texture},
 };
 
@@ -195,7 +194,7 @@ pub fn two_perlin_spheres() -> HittableList {
 
 pub fn earth() -> HittableList {
     let earth_texture = Arc::new(ImageTexture::load_image_file(
-        "./raytracer/objects/earthmap.jpg",
+        "./raytracer/sources/earthmap.jpg",
     ));
     let earth_surface = Arc::new(Lambertian {
         albedo: earth_texture,
@@ -207,5 +206,34 @@ pub fn earth() -> HittableList {
     });
     let mut list = HittableList { objects: vec![] };
     list.add(globe);
+    list
+}
+
+pub fn simple_light() -> HittableList {
+    let mut list = HittableList { objects: vec![] };
+    let pertext = Arc::new(NoiseTexture::new_by_sc(4.0));
+    let permat = Arc::new(Lambertian { albedo: pertext });
+
+    list.add(Arc::new(Sphere {
+        center: Vec3(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        mat_ptr: Some(permat.clone()),
+    }));
+
+    list.add(Arc::new(Sphere {
+        center: Vec3(0.0, 2.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Some(permat),
+    }));
+
+    let difflight = Arc::new(DiffuseLight::new_by_color(Color::new(4.0, 4.0, 4.0)));
+    list.add(Arc::new(XYRect {
+        x0: 3.0,
+        x1: 5.0,
+        y0: 1.0,
+        y1: 3.0,
+        k: -2.0,
+        mp: difflight,
+    }));
     list
 }

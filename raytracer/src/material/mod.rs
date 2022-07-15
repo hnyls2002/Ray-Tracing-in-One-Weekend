@@ -5,9 +5,9 @@ use crate::{
     rtweekend::{
         random_double_unit,
         ray::Ray,
-        vec3::{dot, random_in_unit_sphere, random_unit_vector, reflect, refract, Color},
+        vec3::{dot, random_in_unit_sphere, random_unit_vector, reflect, refract, Color, Point3},
     },
-    texture::Texture,
+    texture::{SolidColor, Texture},
 };
 
 pub trait Material: Send + Sync {
@@ -18,6 +18,10 @@ pub trait Material: Send + Sync {
         attenuation: &mut Color,
         scattered: &mut Ray,
     ) -> bool;
+    #[allow(unused_variables)]
+    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+        Color::new(0.0, 0.0, 0.0)
+    }
 }
 
 pub struct Lambertian {
@@ -132,5 +136,31 @@ impl Material for Dielectric {
         };
 
         true
+    }
+}
+pub struct DiffuseLight {
+    pub emit: Arc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new_by_color(c: Color) -> DiffuseLight {
+        DiffuseLight {
+            emit: Arc::new(SolidColor::new(c)),
+        }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(
+        &self,
+        _r_in: &Ray,
+        _rec: &HitRecord,
+        _attenuation: &mut Color,
+        _scattered: &mut Ray,
+    ) -> bool {
+        false
+    }
+    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+        self.emit.value(u, v, p)
     }
 }

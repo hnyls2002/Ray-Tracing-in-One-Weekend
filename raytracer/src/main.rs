@@ -19,49 +19,58 @@ use rtweekend::{
 
 use crate::{
     bvh::BvhNode,
-    hittablelist::{earth, random_scene, two_perlin_spheres, two_spheres},
+    hittablelist::{earth, random_scene, simple_light, two_perlin_spheres, two_spheres},
 };
 
 mod bvh;
 mod camera;
 mod hittablelist;
 mod material;
-mod moving_sphere;
+mod objects;
 mod rtweekend;
-mod sphere;
 mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 100;
+const SAMPLES_PER_PIXEL: u32 = 400;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
 const THREAD_NUM: u32 = 20;
 const LINES_PER_ISSUE: u32 = 10;
 
-fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
+fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> Color {
     let mut rec: HitRecord = Default::default();
 
+    // exceed the ray bounce limit, no more light is gathered
     if depth <= 0 {
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    if world.hit(r, 0.001, INFINITY, &mut rec) {
-        let mut scattered = Ray::default();
-        let mut attenuation = Color::default();
-        if let Some(mat_ptr) = rec.clone().mat_ptr {
-            if mat_ptr.scatter(r, &rec, &mut attenuation, &mut scattered) {
-                return ray_color(&scattered, world, depth - 1) * attenuation;
-            }
-        }
-        return Color::new(0.0, 0.0, 0.0);
+    // ray hits nothing, return the background color
+    if !world.hit(r, 0.001, INFINITY, &mut rec) {
+        return *background;
     }
-    let unit_direction = r.direction().unit_vec();
-    let t = (unit_direction.1 + 1.0) * 0.5;
-    Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
+
+    let mut scattered = Ray::default();
+    let mut attenuation = Color::default();
+    let emitted = if let Some(ref mat_ptr) = rec.mat_ptr {
+        mat_ptr.emitted(rec.u, rec.v, &rec.p)
+    } else {
+        panic!("No Material!");
+    };
+
+    if let Some(ref mat_ptr) = rec.mat_ptr {
+        if !mat_ptr.scatter(r, &rec, &mut attenuation, &mut scattered) {
+            return emitted;
+        }
+    } else {
+        panic!("No Material!");
+    };
+
+    emitted + attenuation * ray_color(&scattered, background, world, depth - 1)
 }
 
 fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color) {
@@ -97,6 +106,7 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
 fn create_thread(
     line_pool: Arc<Mutex<u32>>,
     world: BvhNode,
+    background: Color,
     cam: Camera,
     bars: Arc<MultiProgress>,
 ) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
@@ -135,7 +145,7 @@ fn create_thread(
                         let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
                         let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
                         let r = cam.get_ray(u, v);
-                        pixel_colors += ray_color(&r, &world, MAX_DEPTH);
+                        pixel_colors += ray_color(&r, &background, &world, MAX_DEPTH);
                     }
                     line_color.push(pixel_colors);
                 }
@@ -149,7 +159,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-15.jpg";
+    let path = "output/image2-16.jpg";
 
     // Camera
     #[allow(unused_assignments)]
@@ -159,6 +169,8 @@ fn main() {
     #[allow(unused_assignments)]
     let mut vfov: f64 = 40.0;
     let mut aperture = 0.0;
+    #[allow(unused_assignments)]
+    let mut background = Color::new(0.0, 0.0, 0.0);
 
     // World
     let world;
@@ -166,25 +178,36 @@ fn main() {
 
     if opt == 1 {
         world = BvhNode::new_list(random_scene(), 0.0, 1.0);
+        background = Color::new(0.7, 0.8, 1.0);
         lookfrom = Vec3(13.0, 2.0, 3.0);
         lookat = Vec3(0.0, 0.0, 0.0);
         vfov = 20.0;
         aperture = 0.1;
     } else if opt == 2 {
         world = BvhNode::new_list(two_spheres(), 0.0, 0.0);
+        background = Color::new(0.7, 0.8, 1.0);
         lookfrom = Vec3(13.0, 2.0, 3.0);
         lookat = Vec3(0.0, 0.0, 0.0);
         vfov = 20.0;
     } else if opt == 3 {
         world = BvhNode::new_list(two_perlin_spheres(), 0.0, 0.0);
+        background = Color::new(0.7, 0.8, 1.0);
+        lookfrom = Vec3(13.0, 2.0, 3.0);
+        lookat = Vec3(0.0, 0.0, 0.0);
+        vfov = 20.0;
+    } else if opt == 4 {
+        world = BvhNode::new_list(earth(), 0.0, 0.0);
+        background = Color::new(0.7, 0.8, 1.0);
         lookfrom = Vec3(13.0, 2.0, 3.0);
         lookat = Vec3(0.0, 0.0, 0.0);
         vfov = 20.0;
     } else {
-        world = BvhNode::new_list(earth(), 0.0, 0.0);
-        lookfrom = Vec3(13.0, 2.0, 3.0);
-        lookat = Vec3(0.0, 0.0, 0.0);
-        vfov = 20.0;
+        world = BvhNode::new_list(simple_light(), 0.0, 0.0);
+        // SAMPLES_PER_PIXEL should be 400 or more
+        background = Color::new(0.0, 0.0, 0.0);
+        lookfrom = Vec3(26.0, 3.0, 6.0);
+        lookat = Vec3(0.0, 2.0, 0.0);
+        vfov = 20.0
     }
 
     // Camera
@@ -245,6 +268,7 @@ fn main() {
         thread_list.push(create_thread(
             line_pool.clone(),
             world.clone(),
+            background,
             cam,
             multiprogress.clone(),
         ));
