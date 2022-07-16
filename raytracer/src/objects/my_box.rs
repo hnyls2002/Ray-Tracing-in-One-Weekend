@@ -13,9 +13,9 @@ use crate::{
 use super::aarect::{XYRect, XZRect, YZRect};
 
 pub struct MyBox {
-    box_min: Point3,
-    box_max: Point3,
-    sides: HittableList,
+    pub box_min: Point3,
+    pub box_max: Point3,
+    pub sides: HittableList,
 }
 
 impl MyBox {

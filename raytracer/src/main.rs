@@ -20,8 +20,8 @@ use rtweekend::{
 use crate::{
     bvh::BvhNode,
     hittablelist::{
-        cornell_box, cornell_smoke, earth, random_scene, simple_light, two_perlin_spheres,
-        two_spheres,
+        cornell_box, cornell_smoke, earth, final_scene, random_scene, simple_light,
+        two_perlin_spheres, two_spheres,
     },
 };
 
@@ -35,9 +35,9 @@ mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 1.0;
-const IMAGE_WIDTH: u32 = 600;
+const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 200;
+const SAMPLES_PER_PIXEL: u32 = 10000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -162,7 +162,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/image2-21.jpg";
+    let path = "output/image2-22.jpg";
 
     // Camera
     #[allow(unused_assignments)]
@@ -220,13 +220,22 @@ fn main() {
         lookfrom = Vec3(278.0, 278.0, -800.0);
         lookat = Vec3(278.0, 278.0, 0.0);
         vfov = 40.0
-    } else {
+    } else if opt == 7 {
         world = BvhNode::new_list(cornell_smoke(), 0.0, 0.0);
         // aspect_ratio = 1.0
         // image_width = 600
         // samples_per_pixel = 200
         background = Color::new(0.0, 0.0, 0.0);
         lookfrom = Vec3(278.0, 278.0, -800.0);
+        lookat = Vec3(278.0, 278.0, 0.0);
+        vfov = 40.0
+    } else {
+        world = BvhNode::new_list(final_scene(), 0.0, 1.0);
+        // aspect_ratio = 1.0
+        // image_width = 800
+        // samples_per_pixel = 10000
+        background = Color::new(0.0, 0.0, 0.0);
+        lookfrom = Vec3(478.0, 278.0, -600.0);
         lookat = Vec3(278.0, 278.0, 0.0);
         vfov = 40.0
     }
