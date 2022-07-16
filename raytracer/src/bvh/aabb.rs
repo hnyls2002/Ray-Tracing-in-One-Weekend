@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use crate::rtweekend::{
+use crate::basic::{
     ray::Ray,
     vec3::{Point3, Vec3},
 };

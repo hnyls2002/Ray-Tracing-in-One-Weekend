@@ -3,11 +3,8 @@ use std::{cmp::Ordering, sync::Arc};
 use rand::Rng;
 
 use crate::{
-    hittablelist::{
-        hittable::{HitRecord, Hittable},
-        HittableList,
-    },
-    rtweekend::ray::Ray,
+    basic::ray::Ray,
+    hittable::{hittable_list::HittableList, HitRecord, Hittable},
 };
 
 use self::aabb::{surrounding_box, Aabb};

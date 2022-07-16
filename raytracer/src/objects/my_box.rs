@@ -1,13 +1,10 @@
 use std::sync::Arc;
 
 use crate::{
+    basic::{ray::Ray, vec3::Point3},
     bvh::aabb::Aabb,
-    hittablelist::{
-        hittable::{HitRecord, Hittable},
-        HittableList,
-    },
+    hittable::{hittable_list::HittableList, HitRecord, Hittable},
     material::Material,
-    rtweekend::{ray::Ray, vec3::Point3},
 };
 
 use super::aarect::{XYRect, XZRect, YZRect};

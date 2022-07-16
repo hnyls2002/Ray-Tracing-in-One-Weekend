@@ -1,14 +1,16 @@
-use crate::rtweekend::PI;
+use crate::{
+    basic::PI,
+    hittable::{HitRecord, Hittable},
+};
 use std::sync::Arc;
 
 use crate::{
-    bvh::aabb::Aabb,
-    hittablelist::hittable::{HitRecord, Hittable},
-    material::Material,
-    rtweekend::{
+    basic::{
         ray::Ray,
         vec3::{dot, Point3, Vec3},
     },
+    bvh::aabb::Aabb,
+    material::Material,
 };
 
 pub struct Sphere {

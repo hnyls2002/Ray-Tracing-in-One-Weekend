@@ -5,39 +5,42 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use camera::Camera;
-use console::style;
-use hittablelist::hittable::{HitRecord, Hittable};
-use image::{ImageBuffer, Rgb, RgbImage};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rtweekend::{
+use basic::{
     clamp, random_double_unit,
     ray::Ray,
     vec3::{Color, Vec3},
     INFINITY,
 };
+use camera::Camera;
+use console::style;
+use hittable::{HitRecord, Hittable};
+use image::{ImageBuffer, Rgb, RgbImage};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 use crate::{
     bvh::BvhNode,
-    hittablelist::{
-        cornell_box, cornell_smoke, earth, final_scene, random_scene, simple_light,
-        two_perlin_spheres, two_spheres,
+    scenes::{
+        book1_final_scene::random_scene,
+        book2_final_scene::final_scene,
+        cornell_box_sences::{cornell_box, cornell_smoke},
+        sphere_scenes::{earth, simple_light, two_perlin_spheres, two_spheres},
     },
 };
 
+mod basic;
 mod bvh;
 mod camera;
-mod hittablelist;
+mod hittable;
 mod material;
 mod objects;
-mod rtweekend;
+mod scenes;
 mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 10000;
+const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: i32 = 50;
 
 // Threads

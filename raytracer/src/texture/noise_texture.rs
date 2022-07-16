@@ -1,6 +1,8 @@
 use rand::{prelude::SliceRandom, thread_rng};
 
-use crate::rtweekend::vec3::{dot, Point3, Vec3};
+use crate::basic::vec3::{dot, Color, Point3, Vec3};
+
+use super::Texture;
 
 const POINT_COUNT: usize = 256;
 
@@ -93,5 +95,32 @@ impl Default for Perlin {
             perm_y: Perlin::perlin_generater_perm(),
             perm_z: Perlin::perlin_generater_perm(),
         }
+    }
+}
+#[derive(Default)]
+pub struct NoiseTexture {
+    noise: Perlin,
+    scale: f64,
+}
+
+impl NoiseTexture {
+    pub fn new_by_sc(sc: f64) -> NoiseTexture {
+        NoiseTexture {
+            noise: Default::default(),
+            scale: sc,
+        }
+    }
+}
+impl Texture for NoiseTexture {
+    fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
+        // smoothed higer frequency
+        //Vec3(1.0, 1.0, 1.0) * (1.0 + self.noise.noise(&(*p * self.scale))) * 0.5
+
+        // turbulence
+        //Vec3(1.0, 1.0, 1.0) * self.noise.turb(&(*p * self.scale), 7)
+
+        // marbled texture
+        let tmp = self.scale * p.2 + 10.0 * self.noise.turb(p, 7);
+        Vec3(1.0, 1.0, 1.0) * (1.0 + tmp.sin()) * 0.5
     }
 }

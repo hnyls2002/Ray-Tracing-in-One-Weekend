@@ -1,4 +1,4 @@
-use crate::rtweekend::{
+use crate::basic::{
     degrees_to_radians, random_double,
     ray::Ray,
     vec3::{cross, random_in_unit_disk, Point3, Vec3},

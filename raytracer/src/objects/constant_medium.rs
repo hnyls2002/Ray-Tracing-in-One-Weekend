@@ -4,14 +4,14 @@ use std::{
 };
 
 use crate::{
-    bvh::aabb::Aabb,
-    hittablelist::hittable::{HitRecord, Hittable},
-    material::{Isotropic, Material},
-    rtweekend::{
+    basic::{
         random_double_unit,
         ray::Ray,
         vec3::{Color, Vec3},
     },
+    bvh::aabb::Aabb,
+    hittable::{HitRecord, Hittable},
+    material::{isotropic::Isotropic, Material},
     texture::Texture,
 };
 

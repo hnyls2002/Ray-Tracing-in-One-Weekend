@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use crate::{
-    bvh::aabb::{surrounding_box, Aabb},
-    hittablelist::hittable::{HitRecord, Hittable},
-    material::Material,
-    rtweekend::{
+    basic::{
         ray::Ray,
         vec3::{dot, Point3, Vec3},
     },
+    bvh::aabb::{surrounding_box, Aabb},
+    hittable::{HitRecord, Hittable},
+    material::Material,
 };
 
 pub struct MovingSphere {

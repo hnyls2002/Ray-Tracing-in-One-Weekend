@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use crate::{
+    basic::{ray::Ray, vec3::Vec3},
     bvh::aabb::Aabb,
-    hittablelist::hittable::{HitRecord, Hittable},
+    hittable::{HitRecord, Hittable},
     material::Material,
-    rtweekend::{ray::Ray, vec3::Vec3},
 };
 
 pub struct XYRect {
