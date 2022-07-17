@@ -1,5 +1,5 @@
 use console::style;
-use hittablelist::hittable::{HitRecord, Hittable};
+use hittablelist::hittable::Hittable;
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::{fs::File, process::exit, sync::Arc};
@@ -25,7 +25,7 @@ use crate::{
 };
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
-    let mut rec: HitRecord = Default::default();
+    let mut rec = None;
 
     if depth <= 0 {
         return Color::new(0.0, 0.0, 0.0);
@@ -34,8 +34,11 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     if world.hit(r, 0.001, INFINITY, &mut rec) {
         let mut scattered = Ray::default();
         let mut attenuation = Color::default();
-        if let Some(mat_ptr) = rec.clone().mat_ptr {
-            if mat_ptr.scatter(r, &rec, &mut attenuation, &mut scattered) {
+        if let Some(rec_data) = rec {
+            if rec_data
+                .mat_ptr
+                .scatter(r, &rec_data, &mut attenuation, &mut scattered)
+            {
                 return ray_color(&scattered, world, depth - 1) * attenuation;
             }
         }
@@ -65,6 +68,10 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color, samples_per_pixel: i32
     *pixel = image::Rgb([r, g, b]);
 }
 
+pub struct HT<'a> {
+    pub objects: Vec<Box<dyn Hittable<'a>>>,
+}
+
 fn main() {
     let path = "output/image11.jpg";
 
@@ -75,45 +82,57 @@ fn main() {
     let samples_per_pixel = 100;
     let max_depth = 50;
 
+    //let mut world = HittableList { objects: vec![] };
     // World
-    let mut world = HittableList { objects: vec![] };
-
-    let material_ground = Arc::new(Lambertian {
+    let material_ground = Lambertian {
         albedo: Color::new(0.8, 0.8, 0.0),
-    });
-    let material_center = Arc::new(Lambertian {
+    };
+    /*
+    let material_center = Lambertian {
         albedo: Color::new(0.7, 0.3, 0.3),
-    });
-    let material_left = Arc::new(Metal {
+    };
+    let material_left = Metal {
         albedo: Color::new(0.8, 0.8, 0.8),
-    });
-    let material_right = Arc::new(Metal {
+    };
+    let material_right = Metal {
         albedo: Color::new(0.8, 0.6, 0.2),
-    });
+    };
+    */
 
+    let fuck = Sphere {
+        center: Point3::new(0.0, -100.5, -1.0),
+        radius: 100.0,
+        mat_ptr: &material_ground,
+    };
+    let mut lst = HT { objects: vec![] };
+    let fuck = Box::new(fuck);
+    lst.objects.push(fuck);
+
+    /*
     world.add(Box::new(Sphere {
         center: Point3::new(0.0, -100.5, -1.0),
         radius: 100.0,
-        mat_ptr: Some(material_ground),
+        mat_ptr: &material_ground,
     }));
     world.add(Box::new(Sphere {
         center: Point3::new(0.0, 0.0, -1.0),
         radius: 0.5,
-        mat_ptr: Some(material_center),
+        mat_ptr: &material_center,
     }));
     world.add(Box::new(Sphere {
         center: Point3::new(-1.0, 0.0, -1.0),
         radius: 0.5,
-        mat_ptr: Some(material_left),
+        mat_ptr: &material_left,
     }));
     world.add(Box::new(Sphere {
         center: Point3::new(1.0, 0.0, -1.0),
         radius: 0.5,
-        mat_ptr: Some(material_right),
+        mat_ptr: &material_right,
     }));
+    */
 
     // Camera
-    let cam = Camera::default();
+    /*let cam = Camera::default();
 
     let quality = 60;
     let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
@@ -159,7 +178,7 @@ fn main() {
         Ok(_) => {}
         // Err(_) => panic!("Outputting image fails."),
         Err(_) => println!("{}", style("Outputting image fails.").red()),
-    }
+    }*/
 
     exit(0);
 }

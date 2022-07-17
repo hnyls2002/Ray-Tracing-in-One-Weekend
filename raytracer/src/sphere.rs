@@ -1,18 +1,16 @@
-use std::sync::Arc;
-
 use crate::camera::rtweekend::ray::Ray;
 use crate::camera::rtweekend::vec3::{dot, Point3};
 use crate::hittablelist::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 
-pub struct Sphere {
+pub struct Sphere<'a> {
     pub center: Point3,
     pub radius: f64,
-    pub mat_ptr: Option<Arc<dyn Material>>,
+    pub mat_ptr: &'a dyn Material,
 }
 
-impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+impl<'a> Hittable<'a> for Sphere<'a> {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let oc = r.orig - self.center;
         let a = r.direction().length().powi(2);
         let half_b = dot(&oc, &r.direction());
@@ -30,11 +28,16 @@ impl Hittable for Sphere {
                 return false;
             }
         }
-        rec.t = root;
-        rec.p = r.at(rec.t);
-        let outward_normal = (rec.p - self.center) / self.radius;
-        rec.set_face_normal(r, &outward_normal);
-        rec.mat_ptr = self.mat_ptr.clone();
+        let mut rec_data = HitRecord {
+            p: r.at(root),
+            normal: Default::default(),
+            mat_ptr: self.mat_ptr,
+            t: root,
+            front_face: Default::default(),
+        };
+        let outward_normal = (rec_data.p - self.center) / self.radius;
+        rec_data.set_face_normal(r, &outward_normal);
+        *rec = Some(rec_data);
         true
     }
 }
