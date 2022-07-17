@@ -2,13 +2,16 @@ use std::sync::Arc;
 
 use crate::{
     basic::vec3::Vec3,
-    hittable::{hittable_list::HittableList, rotate_y::RotateY, translate::Translate, Hittable},
-    material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
-    objects::{
-        aarect::{XYRect, XZRect, YZRect},
-        constant_medium::ConstantMedium,
-        my_box::MyBox,
+    hittable::{
+        hittable_list::HittableList,
+        instances::{constant_medium::ConstantMedium, rotate_y::RotateY, translate::Translate},
+        objects::{
+            aarect::{XYRect, XZRect, YZRect},
+            my_box::MyBox,
+        },
+        Hittable,
     },
+    material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
 };
 
 pub fn cornell_box() -> HittableList {

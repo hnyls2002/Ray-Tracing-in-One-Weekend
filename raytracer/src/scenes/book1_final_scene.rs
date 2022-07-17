@@ -5,9 +5,11 @@ use crate::{
         random_double, random_double_unit,
         vec3::{Color, Point3, Vec3},
     },
-    hittable::hittable_list::HittableList,
+    hittable::{
+        hittable_list::HittableList,
+        objects::{moving_sphere::MovingSphere, sphere::Sphere},
+    },
     material::{dielectric::Dielectric, lambertian::Lambertian, metal::Metal, Material},
-    objects::{moving_sphere::MovingSphere, sphere::Sphere},
     texture::{checker_texture::CheckerTexture, solid_color_texture::SolidColor, Texture},
 };
 

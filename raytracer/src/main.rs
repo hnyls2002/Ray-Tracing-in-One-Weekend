@@ -32,7 +32,6 @@ mod bvh;
 mod camera;
 mod hittable;
 mod material;
-mod objects;
 mod scenes;
 mod texture;
 

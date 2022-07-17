@@ -2,9 +2,11 @@ use std::sync::Arc;
 
 use crate::{
     basic::vec3::{Color, Point3, Vec3},
-    hittable::hittable_list::HittableList,
+    hittable::{
+        hittable_list::HittableList,
+        objects::{aarect::XYRect, sphere::Sphere},
+    },
     material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
-    objects::{aarect::XYRect, sphere::Sphere},
     texture::{
         checker_texture::CheckerTexture, image_texture::ImageTexture, noise_texture::NoiseTexture,
         Texture,

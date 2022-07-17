@@ -10,8 +10,8 @@ use crate::{
 };
 
 pub mod hittable_list;
-pub mod rotate_y;
-pub mod translate;
+pub mod instances;
+pub mod objects;
 
 #[derive(Default, Clone)]
 pub struct HitRecord {

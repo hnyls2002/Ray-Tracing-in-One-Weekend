@@ -3,9 +3,8 @@ use std::{f64::INFINITY, sync::Arc};
 use crate::{
     basic::{degrees_to_radians, ray::Ray, vec3::Vec3},
     bvh::aabb::Aabb,
+    hittable::{HitRecord, Hittable},
 };
-
-use super::{HitRecord, Hittable};
 
 pub struct RotateY {
     ptr: Arc<dyn Hittable>,

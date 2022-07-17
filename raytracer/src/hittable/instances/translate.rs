@@ -3,9 +3,8 @@ use std::sync::Arc;
 use crate::{
     basic::{ray::Ray, vec3::Vec3},
     bvh::aabb::Aabb,
+    hittable::{HitRecord, Hittable},
 };
-
-use super::{HitRecord, Hittable};
 
 pub struct Translate {
     pub ptr: Arc<dyn Hittable>,

@@ -3,13 +3,13 @@ use std::sync::Arc;
 use crate::{
     basic::{random_double, vec3::Vec3},
     bvh::BvhNode,
-    hittable::{hittable_list::HittableList, rotate_y::RotateY, translate::Translate},
+    hittable::{
+        hittable_list::HittableList,
+        instances::{constant_medium::ConstantMedium, rotate_y::RotateY, translate::Translate},
+        objects::{aarect::XZRect, moving_sphere::MovingSphere, my_box::MyBox, sphere::Sphere},
+    },
     material::{
         dielectric::Dielectric, diffuse_light::DiffuseLight, lambertian::Lambertian, metal::Metal,
-    },
-    objects::{
-        aarect::XZRect, constant_medium::ConstantMedium, moving_sphere::MovingSphere,
-        my_box::MyBox, sphere::Sphere,
     },
     texture::{image_texture::ImageTexture, noise_texture::NoiseTexture},
 };
