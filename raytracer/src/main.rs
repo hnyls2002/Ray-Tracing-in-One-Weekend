@@ -98,25 +98,28 @@ fn main() {
     let sp = Box::new(Sphere {
         center: Point3::new(0.0, -100.5, -1.0),
         radius: 100.0,
-        mat_ptr: &material_ground,
+        mat_ptr: material_ground,
     });
 
+    let sp1 = sp.clone();
+
     world.add(sp);
+    world.add(sp1);
 
     world.add(Box::new(Sphere {
         center: Point3::new(0.0, 0.0, -1.0),
         radius: 0.5,
-        mat_ptr: &material_center,
+        mat_ptr: material_center,
     }));
     world.add(Box::new(Sphere {
         center: Point3::new(-1.0, 0.0, -1.0),
         radius: 0.5,
-        mat_ptr: &material_left,
+        mat_ptr: material_left,
     }));
     world.add(Box::new(Sphere {
         center: Point3::new(1.0, 0.0, -1.0),
         radius: 0.5,
-        mat_ptr: &material_right,
+        mat_ptr: material_right,
     }));
 
     // Camera

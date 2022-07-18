@@ -26,6 +26,6 @@ impl<'a> HitRecord<'a> {
     }
 }
 
-pub trait Hittable<'a> {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool;
+pub trait Hittable {
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool;
 }

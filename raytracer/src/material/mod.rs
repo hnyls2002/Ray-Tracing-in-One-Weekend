@@ -16,6 +16,7 @@ pub trait Material {
     ) -> bool;
 }
 
+#[derive(Clone)]
 pub struct Lambertian {
     pub albedo: Color,
 }

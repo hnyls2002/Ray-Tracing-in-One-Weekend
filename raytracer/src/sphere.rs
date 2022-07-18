@@ -4,14 +4,17 @@ use crate::hittablelist::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 
 #[derive(Clone)]
-pub struct Sphere<'a> {
+pub struct Sphere<TM>
+where
+    TM: Material,
+{
     pub center: Point3,
     pub radius: f64,
-    pub mat_ptr: &'a dyn Material,
+    pub mat_ptr: TM,
 }
 
-impl<'a> Hittable<'a> for Sphere<'a> {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
+impl<TM: Material> Hittable for Sphere<TM> {
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let oc = r.orig - self.center;
         let a = r.direction().length().powi(2);
         let half_b = dot(&oc, &r.direction());
@@ -32,7 +35,7 @@ impl<'a> Hittable<'a> for Sphere<'a> {
         let mut rec_data = HitRecord {
             p: r.at(root),
             normal: Default::default(),
-            mat_ptr: self.mat_ptr,
+            mat_ptr: &self.mat_ptr,
             t: root,
             front_face: Default::default(),
         };
