@@ -5,7 +5,7 @@ use self::hittable::{HitRecord, Hittable};
 pub mod hittable;
 
 pub struct HittableList<'a> {
-    pub objects: Vec<Box<dyn Hittable<'a>>>,
+    pub objects: Vec<Box<dyn Hittable<'a> + 'a>>,
 }
 
 #[allow(dead_code)]
@@ -13,7 +13,7 @@ impl<'a> HittableList<'a> {
     pub fn clear(&mut self) {
         self.objects.clear();
     }
-    pub fn add(&mut self, object: Box<dyn Hittable<'a>>) {
+    pub fn add(&mut self, object: Box<dyn Hittable<'a> + 'a>) {
         self.objects.push(object);
     }
 }

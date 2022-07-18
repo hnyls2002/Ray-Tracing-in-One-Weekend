@@ -3,6 +3,7 @@ use crate::camera::rtweekend::vec3::{dot, Point3};
 use crate::hittablelist::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 
+#[derive(Clone)]
 pub struct Sphere<'a> {
     pub center: Point3,
     pub radius: f64,
