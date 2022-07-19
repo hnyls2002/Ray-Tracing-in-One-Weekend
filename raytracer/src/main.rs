@@ -41,7 +41,7 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 500;
+const SAMPLES_PER_PIXEL: u32 = 10000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -238,7 +238,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image2-22.jpg";
+    let path = "output/test.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);

@@ -53,7 +53,7 @@ pub fn two_perlin_spheres() -> HittableList {
 }
 
 pub fn earth() -> HittableList {
-    let earth_texture = ImageTexture::load_image_file("./raytracer/sources/earthmap.jpg");
+    let earth_texture = ImageTexture::load_image_file("./raytracer/sources/yiyan.jpg");
     let earth_surface = Lambertian {
         albedo: earth_texture,
     };

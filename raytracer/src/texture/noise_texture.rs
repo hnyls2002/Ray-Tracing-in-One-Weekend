@@ -91,7 +91,7 @@ impl Perlin {
 impl Default for Perlin {
     fn default() -> Self {
         let mut arr = vec![];
-        let mut rng = StdRng::seed_from_u64(0817);
+        let mut rng = StdRng::seed_from_u64(817);
         for _i in 0..POINT_COUNT {
             arr.push(Vec3(
                 rng.gen_range(-1.0..1.0),
