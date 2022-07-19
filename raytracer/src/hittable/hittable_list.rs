@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     basic::ray::Ray,
     bvh::aabb::{surrounding_box, Aabb},
@@ -7,9 +5,8 @@ use crate::{
 
 use super::{HitRecord, Hittable};
 
-#[derive(Clone)]
 pub struct HittableList {
-    pub objects: Vec<Arc<dyn Hittable>>,
+    pub objects: Vec<Box<dyn Hittable>>,
 }
 
 #[allow(dead_code)]
@@ -17,22 +14,25 @@ impl HittableList {
     pub fn clear(&mut self) {
         self.objects.clear();
     }
-    pub fn add(&mut self, object: Arc<dyn Hittable>) {
+    pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-        let mut tmp_rec = Default::default();
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
+        let mut tmp_rec = None;
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
 
         for object in self.objects.iter() {
-            if object.hit(r, t_min, closest_so_far, &mut tmp_rec) {
+            let res = object.hit(r, t_min, closest_so_far, &mut tmp_rec);
+            if res {
                 hit_anything = true;
-                closest_so_far = tmp_rec.t;
-                *rec = tmp_rec.clone();
+                if let Some(rec_data) = &tmp_rec {
+                    closest_so_far = rec_data.t;
+                    *rec = tmp_rec.clone();
+                }
             }
         }
 

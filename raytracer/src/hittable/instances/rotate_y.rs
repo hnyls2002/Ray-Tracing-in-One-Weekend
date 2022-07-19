@@ -1,4 +1,4 @@
-use std::{f64::INFINITY, sync::Arc};
+use std::f64::INFINITY;
 
 use crate::{
     basic::{degrees_to_radians, ray::Ray, vec3::Vec3},
@@ -6,20 +6,26 @@ use crate::{
     hittable::{HitRecord, Hittable},
 };
 
-pub struct RotateY {
-    ptr: Arc<dyn Hittable>,
+pub struct RotateY<TH>
+where
+    TH: Hittable,
+{
+    obj: TH,
     sin_theta: f64,
     cos_theta: f64,
     hasbox: bool,
     bbox: Aabb,
 }
 
-impl Hittable for RotateY {
+impl<TH> Hittable for RotateY<TH>
+where
+    TH: Hittable,
+{
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut Aabb) -> bool {
         *output_box = self.bbox;
         self.hasbox
     }
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let mut origin = r.orig;
         let mut direction = r.direction();
 
@@ -35,34 +41,45 @@ impl Hittable for RotateY {
             tm: r.tm,
         };
 
-        if !self.ptr.hit(&rotated_r, t_min, t_max, rec) {
+        if !self.obj.hit(&rotated_r, t_min, t_max, rec) {
             return false;
         }
 
-        let mut p = rec.p;
-        let mut normal = rec.normal;
+        let rec_data = if let Some(data) = rec {
+            data
+        } else {
+            panic!("No hit record");
+        };
 
-        p[0] = self.cos_theta * rec.p[0] + self.sin_theta * rec.p[2];
-        p[2] = -self.sin_theta * rec.p[0] + self.cos_theta * rec.p[2];
+        let mut p = rec_data.p;
+        let mut normal = rec_data.normal;
 
-        normal[0] = self.cos_theta * rec.normal[0] + self.sin_theta * rec.normal[2];
-        normal[2] = -self.sin_theta * rec.normal[0] + self.cos_theta * rec.normal[2];
+        p[0] = self.cos_theta * rec_data.p[0] + self.sin_theta * rec_data.p[2];
+        p[2] = -self.sin_theta * rec_data.p[0] + self.cos_theta * rec_data.p[2];
 
-        rec.p = p;
-        rec.set_face_normal(&rotated_r, &normal);
+        normal[0] = self.cos_theta * rec_data.normal[0] + self.sin_theta * rec_data.normal[2];
+        normal[2] = -self.sin_theta * rec_data.normal[0] + self.cos_theta * rec_data.normal[2];
+
+        rec_data.p = p;
+        rec_data.set_face_normal(&rotated_r, &normal);
+
+        *rec = Some((*rec_data).clone());
 
         true
     }
 }
 
-impl RotateY {
-    pub fn new_by_angle(p: Arc<dyn Hittable>, angle: f64) -> RotateY {
-        let ptr = p.clone();
+impl<TH> RotateY<TH>
+where
+    TH: Hittable,
+{
+    pub fn new_by_angle(p: TH, angle: f64) -> RotateY<TH> {
+        let obj = p;
         let radians = degrees_to_radians(angle);
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
         let mut bbox = Default::default();
-        let hasbox = ptr.bounding_box(0.0, 1.0, &mut bbox);
+        let hasbox = obj.bounding_box(0.0, 1.0, &mut bbox);
         let mut min = Vec3(INFINITY, INFINITY, INFINITY);
         let mut max = Vec3(-INFINITY, -INFINITY, -INFINITY);
 
@@ -90,7 +107,7 @@ impl RotateY {
             maximum: max,
         };
         RotateY {
-            ptr,
+            obj,
             sin_theta,
             cos_theta,
             hasbox,

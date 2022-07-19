@@ -1,7 +1,4 @@
-use std::{
-    f64::{consts::E, INFINITY},
-    sync::Arc,
-};
+use std::f64::{consts::E, INFINITY};
 
 use crate::{
     basic::{
@@ -11,85 +8,110 @@ use crate::{
     },
     bvh::aabb::Aabb,
     hittable::{HitRecord, Hittable},
-    material::{isotropic::Isotropic, Material},
-    texture::Texture,
+    material::isotropic::Isotropic,
+    texture::{solid_color_texture::SolidColor, Texture},
 };
 
-pub struct ConstantMedium {
-    pub boundary: Arc<dyn Hittable>,
-    pub phase_function: Arc<dyn Material>,
+pub struct ConstantMedium<TH> {
+    pub boundary: TH,
+    pub phase_function: Isotropic,
     pub neg_inv_density: f64,
 }
 
-impl ConstantMedium {
+impl<TH: Hittable> ConstantMedium<TH> {
     #[allow(dead_code)]
-    pub fn new_by_texture(b: Arc<dyn Hittable>, d: f64, a: Arc<dyn Texture>) -> ConstantMedium {
+    pub fn new_by_texture<TT: Texture>(b: TH, d: f64, a: SolidColor) -> ConstantMedium<TH> {
         ConstantMedium {
             boundary: b,
-            phase_function: Arc::new(Isotropic::new_by_texture(a)),
+            phase_function: Isotropic::new_by_texture(a),
             neg_inv_density: -1.0 / d,
         }
     }
-    pub fn new_by_color(b: Arc<dyn Hittable>, d: f64, c: Color) -> ConstantMedium {
+    pub fn new_by_color(b: TH, d: f64, c: Color) -> ConstantMedium<TH> {
         ConstantMedium {
             boundary: b,
-            phase_function: Arc::new(Isotropic::new_by_color(c)),
+            phase_function: Isotropic::new_by_color(c),
             neg_inv_density: -1.0 / d,
         }
     }
 }
 
-impl Hittable for ConstantMedium {
+impl<TH> Hittable for ConstantMedium<TH>
+where
+    TH: Hittable,
+{
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
         self.boundary.bounding_box(time0, time1, output_box)
     }
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let enable_debug = false;
         let debugging = enable_debug && random_double_unit() < 0.00001;
-        let mut rec1: HitRecord = Default::default();
-        let mut rec2: HitRecord = Default::default();
+        let mut rec1 = None;
+        let mut rec2 = None;
 
         if !self.boundary.hit(r, -INFINITY, INFINITY, &mut rec1) {
             return false;
         }
 
-        if !self.boundary.hit(r, rec1.t + 0.0001, INFINITY, &mut rec2) {
+        let mut rec1_data = if let Some(data) = rec1 {
+            data
+        } else {
+            panic!("No hit record");
+        };
+
+        if !self
+            .boundary
+            .hit(r, rec1_data.t + 0.0001, INFINITY, &mut rec2)
+        {
             return false;
         }
+
+        let mut rec2_data = if let Some(data) = rec2 {
+            data
+        } else {
+            panic!("no hit record");
+        };
 
         if debugging {
-            println!("\n t_min = {} , t_max = {}\n", rec1.t, rec2.t);
+            println!("\n t_min = {} , t_max = {}\n", rec1_data.t, rec2_data.t);
         }
 
-        rec1.t = rec1.t.max(t_min);
-        rec2.t = rec2.t.min(t_max);
+        rec1_data.t = rec1_data.t.max(t_min);
+        rec2_data.t = rec2_data.t.min(t_max);
 
-        if rec1.t >= rec2.t {
+        if rec1_data.t >= rec2_data.t {
             return false;
         }
 
-        rec1.t = rec1.t.max(0.0);
+        rec1_data.t = rec1_data.t.max(0.0);
 
         let ray_length = r.dir.length();
-        let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
+        let distance_inside_boundary = (rec2_data.t - rec1_data.t) * ray_length;
         let hit_distance = self.neg_inv_density * random_double_unit().log(E);
 
         if hit_distance > distance_inside_boundary {
             return false;
         }
 
-        rec.t = rec1.t + hit_distance / ray_length;
-        rec.p = r.at(rec.t);
+        let tmp_t = rec1_data.t + hit_distance / ray_length;
+
+        *rec = Some(HitRecord {
+            p: r.at(tmp_t),
+            normal: Vec3(1.0, 0.0, 0.0),
+            mat_ptr: &self.phase_function,
+            t: tmp_t,
+            u: Default::default(),
+            v: Default::default(),
+            front_face: true,
+        });
 
         if debugging {
-            println!("hit_distance = {}", hit_distance);
-            println!("rec.t = {}", rec.t);
-            println!("rec.p = {:?}", rec.p);
+            if let Some(rec_data) = rec {
+                println!("hit_distance = {}", hit_distance);
+                println!("rec.t = {}", rec_data.t);
+                println!("rec.p = {:?}", rec_data.p);
+            }
         }
-
-        rec.normal = Vec3(1.0, 0.0, 0.0);
-        rec.front_face = true;
-        rec.mat_ptr = Some(self.phase_function.clone());
 
         true
     }

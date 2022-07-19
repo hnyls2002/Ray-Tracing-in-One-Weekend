@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     basic::{
         ray::Ray,
@@ -11,22 +9,32 @@ use crate::{
 
 use super::Material;
 
-pub struct Lambertian {
-    pub albedo: Arc<dyn Texture>,
+#[derive(Clone, Copy)]
+pub struct Lambertian<TT>
+where
+    TT: Texture,
+{
+    pub albedo: TT,
 }
 
-impl Lambertian {
-    pub fn new_by_texture(tex: Arc<dyn Texture>) -> Lambertian {
+impl<TT> Lambertian<TT>
+where
+    TT: Texture,
+{
+    pub fn new_by_texture(tex: TT) -> Lambertian<TT> {
         Lambertian { albedo: tex }
     }
-    pub fn new_by_solid_color(c: &Color) -> Lambertian {
+    pub fn new_by_solid_color(c: Color) -> Lambertian<SolidColor> {
         Lambertian {
-            albedo: Arc::new(SolidColor::new(*c)),
+            albedo: SolidColor::new_from_color(c),
         }
     }
 }
 
-impl Material for Lambertian {
+impl<TT> Material for Lambertian<TT>
+where
+    TT: Texture,
+{
     fn scatter(
         &self,
         r_in: &Ray,

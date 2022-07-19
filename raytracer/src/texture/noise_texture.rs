@@ -1,4 +1,7 @@
-use rand::{prelude::SliceRandom, thread_rng};
+use rand::{
+    prelude::{SliceRandom, StdRng},
+    Rng, SeedableRng,
+};
 
 use crate::basic::vec3::{dot, Color, Point3, Vec3};
 
@@ -6,6 +9,7 @@ use super::Texture;
 
 const POINT_COUNT: usize = 256;
 
+#[derive(Clone)]
 pub struct Perlin {
     ranvec: Vec<Vec3>,
     perm_x: Vec<usize>,
@@ -15,8 +19,9 @@ pub struct Perlin {
 
 impl Perlin {
     fn perlin_generater_perm() -> Vec<usize> {
+        let mut rng = StdRng::seed_from_u64(1926);
         let mut ret: Vec<usize> = (0..POINT_COUNT).collect();
-        ret.shuffle(&mut thread_rng());
+        ret.shuffle(&mut rng);
         ret
     }
     #[allow(clippy::many_single_char_names)]
@@ -86,8 +91,13 @@ impl Perlin {
 impl Default for Perlin {
     fn default() -> Self {
         let mut arr = vec![];
+        let mut rng = StdRng::seed_from_u64(0817);
         for _i in 0..POINT_COUNT {
-            arr.push(Vec3::random(-1.0, 1.0));
+            arr.push(Vec3(
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+            ));
         }
         Self {
             ranvec: arr,
@@ -97,7 +107,7 @@ impl Default for Perlin {
         }
     }
 }
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct NoiseTexture {
     noise: Perlin,
     scale: f64,

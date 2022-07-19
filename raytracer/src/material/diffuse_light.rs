@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     basic::{
         ray::Ray,
@@ -11,14 +9,15 @@ use crate::{
 
 use super::Material;
 
+#[derive(Clone, Copy)]
 pub struct DiffuseLight {
-    pub emit: Arc<dyn Texture>,
+    pub emit: SolidColor,
 }
 
 impl DiffuseLight {
     pub fn new_by_color(c: Color) -> DiffuseLight {
         DiffuseLight {
-            emit: Arc::new(SolidColor::new(c)),
+            emit: SolidColor::new_from_color(c),
         }
     }
 }

@@ -2,7 +2,6 @@ use crate::{
     basic::PI,
     hittable::{HitRecord, Hittable},
 };
-use std::sync::Arc;
 
 use crate::{
     basic::{
@@ -13,13 +12,17 @@ use crate::{
     material::Material,
 };
 
-pub struct Sphere {
+#[derive(Clone, Copy)]
+pub struct Sphere<TM>
+where
+    TM: Material,
+{
     pub center: Point3,
     pub radius: f64,
-    pub mat_ptr: Option<Arc<dyn Material>>,
+    pub mat: TM,
 }
 
-impl Sphere {
+impl<TM: Material> Sphere<TM> {
     fn get_sphere_uv(p: &Point3, u: &mut f64, v: &mut f64) {
         let theta = (-p.1).acos();
         let phi = (-p.2).atan2(p.0) + PI;
@@ -28,8 +31,8 @@ impl Sphere {
     }
 }
 
-impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+impl<TM: Material> Hittable for Sphere<TM> {
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let oc = r.orig - self.center;
         let a = r.direction().length().powi(2);
         let half_b = dot(&oc, &r.direction());
@@ -47,12 +50,19 @@ impl Hittable for Sphere {
                 return false;
             }
         }
-        rec.t = root;
-        rec.p = r.at(rec.t);
-        let outward_normal = (rec.p - self.center) / self.radius;
-        rec.set_face_normal(r, &outward_normal);
-        Sphere::get_sphere_uv(&outward_normal, &mut rec.u, &mut rec.v);
-        rec.mat_ptr = self.mat_ptr.clone();
+        let outward_normal = (r.at(root) - self.center) / self.radius;
+        let mut rec_data = HitRecord {
+            p: r.at(root),
+            normal: Default::default(),
+            mat_ptr: &self.mat,
+            t: root,
+            u: Default::default(),
+            v: Default::default(),
+            front_face: Default::default(),
+        };
+        rec_data.set_face_normal(r, &outward_normal);
+        Sphere::<TM>::get_sphere_uv(&outward_normal, &mut rec_data.u, &mut rec_data.v);
+        *rec = Some(rec_data);
         true
     }
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut Aabb) -> bool {

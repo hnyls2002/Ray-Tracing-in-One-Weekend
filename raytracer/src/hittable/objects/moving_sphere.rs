@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     basic::{
         ray::Ray,
@@ -10,23 +8,33 @@ use crate::{
     material::Material,
 };
 
-pub struct MovingSphere {
+pub struct MovingSphere<TM>
+where
+    TM: Material,
+{
     pub center0: Point3,
     pub center1: Point3,
     pub time0: f64,
     pub time1: f64,
     pub radius: f64,
-    pub mat_ptr: Option<Arc<dyn Material>>,
+    pub mat: TM,
 }
 
-impl MovingSphere {
+impl<TM> MovingSphere<TM>
+where
+    TM: Material,
+{
     fn center(&self, t: f64) -> Point3 {
         self.center0
             + (self.center1 - self.center0) * ((t - self.time0) / (self.time1 - self.time0))
     }
 }
-impl Hittable for MovingSphere {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+
+impl<TM> Hittable for MovingSphere<TM>
+where
+    TM: Material,
+{
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let oc = r.orig - self.center(r.tm);
         let a = r.direction().length().powi(2);
         let half_b = dot(&oc, &r.direction());
@@ -44,11 +52,18 @@ impl Hittable for MovingSphere {
                 return false;
             }
         }
-        rec.t = root;
-        rec.p = r.at(rec.t);
-        let outward_normal = (rec.p - self.center(r.tm)) / self.radius;
-        rec.set_face_normal(r, &outward_normal);
-        rec.mat_ptr = self.mat_ptr.clone();
+        let mut rec_data = HitRecord {
+            p: r.at(root),
+            normal: Default::default(),
+            mat_ptr: &self.mat,
+            t: root,
+            u: Default::default(),
+            v: Default::default(),
+            front_face: Default::default(),
+        };
+        let outward_normal = (r.at(root) - self.center(r.tm)) / self.radius;
+        rec_data.set_face_normal(r, &outward_normal);
+        *rec = Some(rec_data);
         true
     }
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {

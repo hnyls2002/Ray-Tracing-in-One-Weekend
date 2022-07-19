@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     basic::{ray::Ray, vec3::Point3},
     bvh::aabb::Aabb,
@@ -16,55 +14,58 @@ pub struct MyBox {
 }
 
 impl MyBox {
-    pub fn new(p0: Point3, p1: Point3, ptr: Arc<dyn Material>) -> MyBox {
+    pub fn new<TM>(p0: Point3, p1: Point3, mat: TM) -> MyBox
+    where
+        TM: Material + Clone + Copy + 'static,
+    {
         let mut list = HittableList { objects: vec![] };
-        list.add(Arc::new(XYRect {
+        list.add(Box::new(XYRect {
             x0: p0.0,
             x1: p1.0,
             y0: p0.1,
             y1: p1.1,
             k: p1.2,
-            mp: ptr.clone(),
+            mat,
         }));
-        list.add(Arc::new(XYRect {
+        list.add(Box::new(XYRect {
             x0: p0.0,
             x1: p1.0,
             y0: p0.1,
             y1: p1.1,
             k: p0.2,
-            mp: ptr.clone(),
+            mat,
         }));
-        list.add(Arc::new(XZRect {
+        list.add(Box::new(XZRect {
             x0: p0.0,
             x1: p1.0,
             z0: p0.2,
             z1: p1.2,
             k: p1.1,
-            mp: ptr.clone(),
+            mat,
         }));
-        list.add(Arc::new(XZRect {
+        list.add(Box::new(XZRect {
             x0: p0.0,
             x1: p1.0,
             z0: p0.2,
             z1: p1.2,
             k: p0.1,
-            mp: ptr.clone(),
+            mat,
         }));
-        list.add(Arc::new(YZRect {
+        list.add(Box::new(YZRect {
             y0: p0.1,
             y1: p1.1,
             z0: p0.2,
             z1: p1.2,
             k: p1.0,
-            mp: ptr.clone(),
+            mat,
         }));
-        list.add(Arc::new(YZRect {
+        list.add(Box::new(YZRect {
             y0: p0.1,
             y1: p1.1,
             z0: p0.2,
             z1: p1.2,
             k: p0.0,
-            mp: ptr,
+            mat,
         }));
         MyBox {
             box_min: p0,
@@ -75,7 +76,7 @@ impl MyBox {
 }
 
 impl Hittable for MyBox {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         self.sides.hit(r, t_min, t_max, rec)
     }
 

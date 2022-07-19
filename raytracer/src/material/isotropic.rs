@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     basic::{
         ray::Ray,
@@ -12,17 +10,17 @@ use crate::{
 use super::Material;
 
 pub struct Isotropic {
-    pub albedo: Arc<dyn Texture>,
+    pub albedo: SolidColor,
 }
 
 impl Isotropic {
     #[allow(dead_code)]
-    pub fn new_by_texture(tex: Arc<dyn Texture>) -> Isotropic {
+    pub fn new_by_texture(tex: SolidColor) -> Isotropic {
         Isotropic { albedo: tex }
     }
     pub fn new_by_color(c: Color) -> Isotropic {
         Isotropic {
-            albedo: Arc::new(SolidColor::new(c)),
+            albedo: SolidColor::new_from_color(c),
         }
     }
 }
