@@ -2,8 +2,9 @@ use std::f64::consts::PI;
 
 use crate::{
     basic::{
+        onb::Onb,
         ray::Ray,
-        vec3::{dot, random_in_hemisphere, Color},
+        vec3::{dot, random_cosine_direction, Color},
     },
     hittable::HitRecord,
     texture::{solid_color_texture::SolidColor, Texture},
@@ -45,14 +46,15 @@ where
         scattered: &mut Ray,
         pdf: &mut f64,
     ) -> bool {
-        let direction = random_in_hemisphere(&rec.normal);
+        let uvw = Onb::build_from_w(&rec.normal);
+        let direction = uvw.local_by_vec3(random_cosine_direction());
         *scattered = Ray {
             orig: rec.p,
             dir: direction.unit_vec(),
             tm: r_in.tm,
         };
         *alb = self.albedo.value(rec.u, rec.v, &rec.p);
-        *pdf = 0.5 / PI;
+        *pdf = dot(&uvw.w(), &scattered.dir) / PI;
         true
     }
     #[allow(unused_variables)]

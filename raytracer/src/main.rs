@@ -246,7 +246,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image3-2.jpg";
+    let path = "output/image3-3.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);
