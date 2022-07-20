@@ -13,10 +13,11 @@ use basic::{
 };
 use camera::Camera;
 use console::style;
-use hittable::Hittable;
+use hittable::{objects::aarect::XZRect, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use pdf::{cos_pdf::CosPDF, PDF};
+use material::diffuse_light::DiffuseLight;
+use pdf::{hittable_pdf::HittablePDF, PDF};
 
 use crate::{
     bvh::BvhNode,
@@ -43,14 +44,20 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 1000;
+const SAMPLES_PER_PIXEL: u32 = 10;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
 const THREAD_NUM: u32 = 20;
 const LINES_PER_ISSUE: u32 = 10;
 
-fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> Color {
+fn ray_color(
+    r: &Ray,
+    background: &Color,
+    world: &dyn Hittable,
+    lights: Box<dyn Hittable>,
+    depth: i32,
+) -> Color {
     let mut rec = None;
 
     // exceed the ray bounce limit, no more light is gathered
@@ -84,52 +91,24 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
         return emitted;
     }
 
-    /*
-        let on_light = Vec3(
-            random_double(213.0, 343.0),
-            554.0,
-            random_double(227.0, 332.0),
-        );
+    let light_pdf = HittablePDF {
+        o: rec_data.p,
+        ptr: lights,
+    };
 
-        let mut to_light = on_light - rec_data.p;
-        let distance_squared = to_light.length().powi(2);
-        to_light = to_light.unit_vec();
-
-        // Not in the hemisphere
-        if dot(&to_light, &rec_data.normal) < 0.0 {
-            return emitted;
-        }
-
-        let light_area = (343.0 - 213.0) * (332.0 - 227.0);
-        let light_cosine = to_light.1.abs();
-
-        // Upright to the normal
-        if light_cosine < 1e-6 {
-            return emitted;
-        }
-
-        pdf = distance_squared / (light_cosine * light_area);
-        scattered = Ray {
-            orig: rec_data.p,
-            dir: to_light,
-            tm: r.tm,
-        };
-    */
-
-    let p = CosPDF::new_from_normal(&rec_data.normal);
     scattered = Ray {
         orig: rec_data.p,
-        dir: p.generate(),
+        dir: light_pdf.generate(),
         tm: r.tm,
     };
-    pdf_val = p.value(&scattered.direction());
+    pdf_val = light_pdf.value(&scattered.direction());
 
     emitted
         + albedo
             * rec_data
                 .mat_ptr
                 .scattering_pdf(r, &rec_data, &mut scattered)
-            * ray_color(&scattered, background, world, depth - 1)
+            * ray_color(&scattered, background, world, light_pdf.ptr, depth - 1)
             / pdf_val
 }
 
@@ -205,7 +184,15 @@ fn create_thread(
                         let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
                         let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
                         let r = cam.get_ray(u, v);
-                        pixel_colors += ray_color(&r, &background, &world, MAX_DEPTH);
+                        let ptr = Box::new(XZRect {
+                            x0: 213.0,
+                            x1: 343.0,
+                            z0: 227.0,
+                            z1: 332.0,
+                            k: 554.0,
+                            mat: DiffuseLight::new_by_color(Vec3(15.0, 15.0, 15.0)),
+                        });
+                        pixel_colors += ray_color(&r, &background, &world, ptr, MAX_DEPTH);
                     }
                     line_color.push(pixel_colors);
                 }
@@ -289,7 +276,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image3-6.jpg";
+    let path = "output/image3-7.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);

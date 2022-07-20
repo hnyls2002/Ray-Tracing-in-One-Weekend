@@ -1,5 +1,11 @@
+use std::f64::INFINITY;
+
 use crate::{
-    basic::{ray::Ray, vec3::Vec3},
+    basic::{
+        random_double,
+        ray::Ray,
+        vec3::{dot, Point3, Vec3},
+    },
     bvh::aabb::Aabb,
     hittable::{HitRecord, Hittable},
     material::Material,
@@ -103,6 +109,40 @@ where
         *rec = Some(rec_data);
 
         true
+    }
+    fn pdf_value(&self, origin: &Point3, v: &Vec3) -> f64 {
+        let mut rec = None;
+        if !self.hit(
+            &Ray {
+                orig: *origin,
+                dir: *v,
+                tm: 0.0,
+            },
+            0.001,
+            INFINITY,
+            &mut rec,
+        ) {
+            return 0.0;
+        }
+
+        let area = (self.x1 - self.x0) * (self.z1 - self.z0);
+        let rec_data = if let Some(data) = rec {
+            data
+        } else {
+            panic!("No hit record");
+        };
+        let distance_squared = (rec_data.t * v.length()).powi(2);
+        let cosine = (dot(v, &rec_data.normal) / v.length()).abs();
+
+        distance_squared / (cosine * area)
+    }
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        let random_point = Vec3(
+            random_double(self.x0, self.x1),
+            self.k,
+            random_double(self.z0, self.z1),
+        );
+        random_point - *origin
     }
 }
 

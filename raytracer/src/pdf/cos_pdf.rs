@@ -12,6 +12,7 @@ pub struct CosPDF {
 }
 
 impl CosPDF {
+    #[allow(dead_code)]
     pub fn new_from_normal(w: &Vec3) -> CosPDF {
         CosPDF {
             uvw: Onb::build_from_w(w),

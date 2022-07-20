@@ -1,4 +1,5 @@
 pub mod cos_pdf;
+pub mod hittable_pdf;
 
 use crate::basic::vec3::Vec3;
 
