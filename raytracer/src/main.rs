@@ -6,9 +6,9 @@ use std::{
 };
 
 use basic::{
-    clamp, random_double_unit,
+    clamp, random_double, random_double_unit,
     ray::Ray,
-    vec3::{Color, Vec3},
+    vec3::{dot, Color, Vec3},
     INFINITY,
 };
 use camera::Camera;
@@ -41,7 +41,7 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 500;
+const SAMPLES_PER_PIXEL: u32 = 10;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -80,6 +80,36 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
     {
         return emitted;
     }
+
+    let on_light = Vec3(
+        random_double(213.0, 343.0),
+        554.0,
+        random_double(227.0, 332.0),
+    );
+
+    let mut to_light = on_light - rec_data.p;
+    let distance_squared = to_light.length().powi(2);
+    to_light = to_light.unit_vec();
+
+    // Not in the hemisphere
+    if dot(&to_light, &rec_data.normal) < 0.0 {
+        return emitted;
+    }
+
+    let light_area = (343.0 - 213.0) * (332.0 - 227.0);
+    let light_cosine = to_light.1.abs();
+
+    // Upright to the normal
+    if light_cosine < 1e-6 {
+        return emitted;
+    }
+
+    pdf = distance_squared / (light_cosine * light_area);
+    scattered = Ray {
+        orig: rec_data.p,
+        dir: to_light,
+        tm: r.tm,
+    };
 
     emitted
         + albedo
@@ -246,7 +276,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image3-3.jpg";
+    let path = "output/image3-4.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);
