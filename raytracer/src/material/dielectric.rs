@@ -22,14 +22,16 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
+    #[allow(unused_variables)]
     fn scatter(
         &self,
         r_in: &Ray,
         rec: &HitRecord,
-        attenuation: &mut Color,
+        alb: &mut Color,
         scattered: &mut Ray,
+        pdf: &mut f64,
     ) -> bool {
-        *attenuation = Color::new(1.0, 1.0, 1.0);
+        *alb = Color::new(1.0, 1.0, 1.0);
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
         } else {

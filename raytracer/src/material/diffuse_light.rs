@@ -23,12 +23,14 @@ impl DiffuseLight {
 }
 
 impl Material for DiffuseLight {
+    #[allow(unused_variables)]
     fn scatter(
         &self,
-        _r_in: &Ray,
-        _rec: &HitRecord,
-        _attenuation: &mut Color,
-        _scattered: &mut Ray,
+        r_in: &Ray,
+        rec: &HitRecord,
+        alb: &mut Color,
+        scattered: &mut Ray,
+        pdf: &mut f64,
     ) -> bool {
         false
     }

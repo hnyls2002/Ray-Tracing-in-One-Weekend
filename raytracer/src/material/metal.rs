@@ -14,12 +14,14 @@ pub struct Metal {
 }
 
 impl Material for Metal {
+    #[allow(unused_variables)]
     fn scatter(
         &self,
         r_in: &Ray,
         rec: &HitRecord,
-        attenuation: &mut Color,
+        alb: &mut Color,
         scattered: &mut Ray,
+        pdf: &mut f64,
     ) -> bool {
         let reflected = reflect(&r_in.direction().unit_vec(), &rec.normal);
         *scattered = Ray {
@@ -34,7 +36,7 @@ impl Material for Metal {
                 },
             tm: r_in.tm,
         };
-        *attenuation = self.albedo;
+        *alb = self.albedo;
         dot(&scattered.direction(), &rec.normal) > 0.0
     }
 }

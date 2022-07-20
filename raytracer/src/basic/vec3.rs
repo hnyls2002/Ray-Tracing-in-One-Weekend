@@ -128,6 +128,7 @@ impl Vec3 {
             random_double(min, max),
         )
     }
+    #[allow(dead_code)]
     pub fn near_zero(&self) -> bool {
         let s = 1e-8;
         self.0.abs() < s && self.1.abs() < s && self.2.abs() < s
@@ -145,6 +146,7 @@ pub fn random_in_unit_sphere() -> Vec3 {
     p
 }
 
+#[allow(dead_code)]
 pub fn random_unit_vector() -> Vec3 {
     random_in_unit_sphere().unit_vec()
 }

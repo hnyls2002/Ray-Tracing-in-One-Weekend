@@ -26,19 +26,21 @@ impl Isotropic {
 }
 
 impl Material for Isotropic {
+    #[allow(unused_variables)]
     fn scatter(
         &self,
         r_in: &Ray,
         rec: &HitRecord,
-        attenuation: &mut Color,
+        alb: &mut Color,
         scattered: &mut Ray,
+        pdf: &mut f64,
     ) -> bool {
         *scattered = Ray {
             orig: rec.p,
             dir: random_in_unit_sphere(),
             tm: r_in.tm,
         };
-        *attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
+        *alb = self.albedo.value(rec.u, rec.v, &rec.p);
         true
     }
 }

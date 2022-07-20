@@ -39,9 +39,9 @@ mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 1.0;
-const IMAGE_WIDTH: u32 = 800;
+const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 10000;
+const SAMPLES_PER_PIXEL: u32 = 500;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -62,7 +62,6 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
     }
 
     let mut scattered = Ray::default();
-    let mut attenuation = Color::default();
     let rec_data = if let Some(data) = rec {
         data
     } else {
@@ -72,14 +71,23 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
         .mat_ptr
         .emitted(rec_data.u, rec_data.v, &rec_data.p);
 
+    let mut pdf: f64 = 0.0;
+    let mut albedo: Color = Default::default();
+
     if !rec_data
         .mat_ptr
-        .scatter(r, &rec_data, &mut attenuation, &mut scattered)
+        .scatter(r, &rec_data, &mut albedo, &mut scattered, &mut pdf)
     {
         return emitted;
     }
 
-    emitted + attenuation * ray_color(&scattered, background, world, depth - 1)
+    emitted
+        + albedo
+            * rec_data
+                .mat_ptr
+                .scattering_pdf(r, &rec_data, &mut scattered)
+            * ray_color(&scattered, background, world, depth - 1)
+            / pdf
 }
 
 fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color) {
@@ -173,7 +181,7 @@ fn world_generator(
     vfov: &mut f64,
     aperture: &mut f64,
 ) -> BvhNode {
-    let opt = 0;
+    let opt = 6;
     if opt == 1 {
         *background = Color::new(0.7, 0.8, 1.0);
         *lookfrom = Vec3(13.0, 2.0, 3.0);
@@ -214,7 +222,7 @@ fn world_generator(
         *lookfrom = Vec3(278.0, 278.0, -800.0);
         *lookat = Vec3(278.0, 278.0, 0.0);
         *vfov = 40.0;
-        BvhNode::new_from_list(cornell_box(), 0.0, 0.0)
+        BvhNode::new_from_list(cornell_box(), 0.0, 1.0)
     } else if opt == 7 {
         // aspect_ratio = 1.0
         // image_width = 600
@@ -238,7 +246,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/test.jpg";
+    let path = "output/image3-2.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);
