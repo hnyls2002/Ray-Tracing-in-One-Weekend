@@ -22,7 +22,7 @@ impl CosPDF {
 
 impl PDF for CosPDF {
     fn value(&self, direction: &Vec3) -> f64 {
-        let cosine = dot(direction, &self.uvw.w());
+        let cosine = dot(&direction.unit_vec(), &self.uvw.w());
         (cosine / PI).max(0.0)
     }
     fn generate(&self) -> Vec3 {

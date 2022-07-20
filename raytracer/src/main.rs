@@ -17,7 +17,7 @@ use hittable::{objects::aarect::XZRect, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use material::diffuse_light::DiffuseLight;
-use pdf::{hittable_pdf::HittablePDF, PDF};
+use pdf::{cos_pdf::CosPDF, hittable_pdf::HittablePDF, mixture_pdf::MixturePDF, PDF};
 
 use crate::{
     bvh::BvhNode,
@@ -44,7 +44,7 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 10;
+const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -55,7 +55,7 @@ fn ray_color(
     r: &Ray,
     background: &Color,
     world: &dyn Hittable,
-    lights: Box<dyn Hittable>,
+    lights: &dyn Hittable,
     depth: i32,
 ) -> Color {
     let mut rec = None;
@@ -91,24 +91,26 @@ fn ray_color(
         return emitted;
     }
 
-    let light_pdf = HittablePDF {
+    let p0 = HittablePDF {
         o: rec_data.p,
         ptr: lights,
     };
+    let p1 = CosPDF::new_from_normal(&rec_data.normal);
+    let mixed_pdf = MixturePDF::new(p0, p1);
 
     scattered = Ray {
         orig: rec_data.p,
-        dir: light_pdf.generate(),
+        dir: mixed_pdf.generate(),
         tm: r.tm,
     };
-    pdf_val = light_pdf.value(&scattered.direction());
+    pdf_val = mixed_pdf.value(&scattered.direction());
 
     emitted
         + albedo
             * rec_data
                 .mat_ptr
                 .scattering_pdf(r, &rec_data, &mut scattered)
-            * ray_color(&scattered, background, world, light_pdf.ptr, depth - 1)
+            * ray_color(&scattered, background, world, lights, depth - 1)
             / pdf_val
 }
 
@@ -184,15 +186,15 @@ fn create_thread(
                         let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
                         let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
                         let r = cam.get_ray(u, v);
-                        let ptr = Box::new(XZRect {
+                        let lights = XZRect {
                             x0: 213.0,
                             x1: 343.0,
                             z0: 227.0,
                             z1: 332.0,
                             k: 554.0,
                             mat: DiffuseLight::new_by_color(Vec3(15.0, 15.0, 15.0)),
-                        });
-                        pixel_colors += ray_color(&r, &background, &world, ptr, MAX_DEPTH);
+                        };
+                        pixel_colors += ray_color(&r, &background, &world, &lights, MAX_DEPTH);
                     }
                     line_color.push(pixel_colors);
                 }
@@ -276,7 +278,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image3-7.jpg";
+    let path = "output/image3-8.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);

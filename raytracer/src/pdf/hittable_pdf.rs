@@ -5,12 +5,12 @@ use crate::{
 
 use super::PDF;
 
-pub struct HittablePDF {
+pub struct HittablePDF<'a> {
     pub o: Point3,
-    pub ptr: Box<dyn Hittable>,
+    pub ptr: &'a dyn Hittable,
 }
 
-impl PDF for HittablePDF {
+impl<'a> PDF for HittablePDF<'a> {
     fn value(&self, direction: &Vec3) -> f64 {
         self.ptr.pdf_value(&self.o, direction)
     }
