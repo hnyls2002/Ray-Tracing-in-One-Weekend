@@ -2,7 +2,10 @@ use crate::{
     basic::vec3::Vec3,
     hittable::{
         hittable_list::HittableList,
-        instances::{constant_medium::ConstantMedium, rotate_y::RotateY, translate::Translate},
+        instances::{
+            constant_medium::ConstantMedium, flip_face::FlipFace, rotate_y::RotateY,
+            translate::Translate,
+        },
         objects::{
             aarect::{XYRect, XZRect, YZRect},
             my_box::MyBox,
@@ -35,13 +38,15 @@ pub fn cornell_box() -> HittableList {
         k: 0.0,
         mat: red,
     }));
-    list.add(Box::new(XZRect {
-        x0: 213.0,
-        x1: 343.0,
-        z0: 227.0,
-        z1: 332.0,
-        k: 554.0,
-        mat: light,
+    list.add(Box::new(FlipFace {
+        obj: XZRect {
+            x0: 213.0,
+            x1: 343.0,
+            z0: 227.0,
+            z1: 332.0,
+            k: 554.0,
+            mat: light,
+        },
     }));
     list.add(Box::new(XZRect {
         x0: 0.0,

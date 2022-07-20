@@ -67,9 +67,10 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
     } else {
         panic!("No hit record");
     };
-    let emitted = rec_data
-        .mat_ptr
-        .emitted(rec_data.u, rec_data.v, &rec_data.p);
+    let emitted =
+        rec_data
+            .mat_ptr
+            .emitted(&scattered, &rec_data, rec_data.u, rec_data.v, &rec_data.p);
 
     let mut pdf: f64 = 0.0;
     let mut albedo: Color = Default::default();
@@ -276,7 +277,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image3-4.jpg";
+    let path = "output/image3-5.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);

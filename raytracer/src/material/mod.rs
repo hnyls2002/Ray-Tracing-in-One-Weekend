@@ -7,7 +7,7 @@ pub mod metal;
 use crate::{
     basic::{
         ray::Ray,
-        vec3::{Color, Point3},
+        vec3::{Color, Point3, Vec3},
     },
     hittable::HitRecord,
 };
@@ -29,7 +29,7 @@ pub trait Material: Send + Sync {
         0.0
     }
     #[allow(unused_variables)]
-    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
-        Color::new(0.0, 0.0, 0.0)
+    fn emitted(&self, r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
+        Vec3(0.0, 0.0, 0.0)
     }
 }
