@@ -6,9 +6,9 @@ use std::{
 };
 
 use basic::{
-    clamp, random_double, random_double_unit,
+    clamp, random_double_unit,
     ray::Ray,
-    vec3::{dot, Color, Vec3},
+    vec3::{Color, Vec3},
     INFINITY,
 };
 use camera::Camera;
@@ -16,6 +16,7 @@ use console::style;
 use hittable::Hittable;
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use pdf::{cos_pdf::CosPDF, PDF};
 
 use crate::{
     bvh::BvhNode,
@@ -33,6 +34,7 @@ mod bvh;
 mod camera;
 mod hittable;
 mod material;
+mod pdf;
 mod scenes;
 mod status_bar;
 mod texture;
@@ -41,7 +43,7 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 10;
+const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -72,45 +74,55 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
             .mat_ptr
             .emitted(&scattered, &rec_data, rec_data.u, rec_data.v, &rec_data.p);
 
-    let mut pdf: f64 = 0.0;
+    let mut pdf_val: f64 = 0.0;
     let mut albedo: Color = Default::default();
 
     if !rec_data
         .mat_ptr
-        .scatter(r, &rec_data, &mut albedo, &mut scattered, &mut pdf)
+        .scatter(r, &rec_data, &mut albedo, &mut scattered, &mut pdf_val)
     {
         return emitted;
     }
 
-    let on_light = Vec3(
-        random_double(213.0, 343.0),
-        554.0,
-        random_double(227.0, 332.0),
-    );
+    /*
+        let on_light = Vec3(
+            random_double(213.0, 343.0),
+            554.0,
+            random_double(227.0, 332.0),
+        );
 
-    let mut to_light = on_light - rec_data.p;
-    let distance_squared = to_light.length().powi(2);
-    to_light = to_light.unit_vec();
+        let mut to_light = on_light - rec_data.p;
+        let distance_squared = to_light.length().powi(2);
+        to_light = to_light.unit_vec();
 
-    // Not in the hemisphere
-    if dot(&to_light, &rec_data.normal) < 0.0 {
-        return emitted;
-    }
+        // Not in the hemisphere
+        if dot(&to_light, &rec_data.normal) < 0.0 {
+            return emitted;
+        }
 
-    let light_area = (343.0 - 213.0) * (332.0 - 227.0);
-    let light_cosine = to_light.1.abs();
+        let light_area = (343.0 - 213.0) * (332.0 - 227.0);
+        let light_cosine = to_light.1.abs();
 
-    // Upright to the normal
-    if light_cosine < 1e-6 {
-        return emitted;
-    }
+        // Upright to the normal
+        if light_cosine < 1e-6 {
+            return emitted;
+        }
 
-    pdf = distance_squared / (light_cosine * light_area);
+        pdf = distance_squared / (light_cosine * light_area);
+        scattered = Ray {
+            orig: rec_data.p,
+            dir: to_light,
+            tm: r.tm,
+        };
+    */
+
+    let p = CosPDF::new_from_normal(&rec_data.normal);
     scattered = Ray {
         orig: rec_data.p,
-        dir: to_light,
+        dir: p.generate(),
         tm: r.tm,
     };
+    pdf_val = p.value(&scattered.direction());
 
     emitted
         + albedo
@@ -118,7 +130,7 @@ fn ray_color(r: &Ray, background: &Color, world: &dyn Hittable, depth: i32) -> C
                 .mat_ptr
                 .scattering_pdf(r, &rec_data, &mut scattered)
             * ray_color(&scattered, background, world, depth - 1)
-            / pdf
+            / pdf_val
 }
 
 fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color) {
@@ -277,7 +289,7 @@ fn world_generator(
 
 fn main() {
     // Output Path
-    let path = "output/image3-5.jpg";
+    let path = "output/image3-6.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);
