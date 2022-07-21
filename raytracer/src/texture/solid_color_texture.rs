@@ -4,7 +4,7 @@ use super::Texture;
 
 #[derive(Clone, Copy)]
 pub struct SolidColor {
-    color_value: Color,
+    pub color_value: Color,
 }
 
 impl SolidColor {

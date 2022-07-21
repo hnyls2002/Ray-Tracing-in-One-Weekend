@@ -7,7 +7,7 @@ use crate::{
     texture::{solid_color_texture::SolidColor, Texture},
 };
 
-use super::Material;
+use super::{Material, ScatterRecord};
 
 pub struct Isotropic {
     pub albedo: SolidColor,
@@ -27,20 +27,18 @@ impl Isotropic {
 
 impl Material for Isotropic {
     #[allow(unused_variables)]
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        alb: &mut Color,
-        scattered: &mut Ray,
-        pdf: &mut f64,
-    ) -> bool {
-        *scattered = Ray {
-            orig: rec.p,
-            dir: random_in_unit_sphere(),
-            tm: r_in.tm,
-        };
-        *alb = self.albedo.value(rec.u, rec.v, &rec.p);
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut Option<ScatterRecord>) -> bool {
+        *srec = Some(ScatterRecord {
+            specular_ray: Ray {
+                orig: rec.p,
+                dir: random_in_unit_sphere(),
+                tm: r_in.tm,
+            },
+
+            is_specular: false,
+            attenuation: self.albedo.value(rec.u, rec.v, &rec.p),
+            pdf_func: None,
+        });
         true
     }
 }

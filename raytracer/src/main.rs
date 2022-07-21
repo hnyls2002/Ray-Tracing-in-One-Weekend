@@ -13,18 +13,17 @@ use basic::{
 };
 use camera::Camera;
 use console::style;
-use hittable::{objects::aarect::XZRect, Hittable};
+use hittable::{hittable_list::HittableList, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use material::diffuse_light::DiffuseLight;
-use pdf::{cos_pdf::CosPDF, hittable_pdf::HittablePDF, mixture_pdf::MixturePDF, PDF};
+use pdf::{hittable_pdf::HittablePDF, mixture_pdf::MixturePDF, PDF};
 
 use crate::{
     bvh::BvhNode,
     scenes::{
         book1_final_scene::random_scene,
         book2_final_scene::final_scene,
-        cornell_box_sences::{cornell_box, cornell_smoke},
+        cornell_box_sences::cornell_box,
         sphere_scenes::{earth, simple_light, two_perlin_spheres, two_spheres},
     },
     status_bar::{show_image_information, show_thread_information},
@@ -44,7 +43,7 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 1000;
+const SAMPLES_PER_PIXEL: u32 = 2000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -70,43 +69,62 @@ fn ray_color(
         return *background;
     }
 
-    let mut scattered = Ray::default();
+    let mut srec = None;
+
     let rec_data = if let Some(data) = rec {
         data
     } else {
         panic!("No hit record");
     };
-    let emitted =
-        rec_data
-            .mat_ptr
-            .emitted(&scattered, &rec_data, rec_data.u, rec_data.v, &rec_data.p);
 
-    let mut pdf_val: f64 = 0.0;
-    let mut albedo: Color = Default::default();
-
-    if !rec_data
+    let emitted = rec_data
         .mat_ptr
-        .scatter(r, &rec_data, &mut albedo, &mut scattered, &mut pdf_val)
-    {
+        .emitted(&r, &rec_data, rec_data.u, rec_data.v, &rec_data.p);
+
+    if !rec_data.mat_ptr.scatter(r, &rec_data, &mut srec) {
         return emitted;
     }
 
-    let p0 = HittablePDF {
+    let srec_data = if let Some(data) = srec {
+        data
+    } else {
+        panic!("No scatter record");
+    };
+
+    if srec_data.is_specular {
+        return srec_data.attenuation
+            * ray_color(
+                &srec_data.specular_ray,
+                background,
+                world,
+                lights,
+                depth - 1,
+            );
+    }
+
+    let light_pdf = Box::new(HittablePDF {
         o: rec_data.p,
         ptr: lights,
-    };
-    let p1 = CosPDF::new_from_normal(&rec_data.normal);
-    let mixed_pdf = MixturePDF::new(p0, p1);
+    });
+    let mixed_pdf = MixturePDF::new(
+        light_pdf,
+        if let Some(data) = srec_data.pdf_func {
+            data
+        } else {
+            panic!("No pdf function");
+        },
+    );
 
-    scattered = Ray {
+    let mut scattered = Ray {
         orig: rec_data.p,
         dir: mixed_pdf.generate(),
         tm: r.tm,
     };
-    pdf_val = mixed_pdf.value(&scattered.direction());
+
+    let pdf_val = mixed_pdf.value(&scattered.direction());
 
     emitted
-        + albedo
+        + srec_data.attenuation
             * rec_data
                 .mat_ptr
                 .scattering_pdf(r, &rec_data, &mut scattered)
@@ -115,14 +133,25 @@ fn ray_color(
 }
 
 fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color) {
-    let r = pixel_colors.0 / (SAMPLES_PER_PIXEL as f64);
-    let g = pixel_colors.1 / (SAMPLES_PER_PIXEL as f64);
-    let b = pixel_colors.2 / (SAMPLES_PER_PIXEL as f64);
+    let mut r = pixel_colors.0 / (SAMPLES_PER_PIXEL as f64);
+    let mut g = pixel_colors.1 / (SAMPLES_PER_PIXEL as f64);
+    let mut b = pixel_colors.2 / (SAMPLES_PER_PIXEL as f64);
+
+    // replace NaN with zero
+    if r.is_nan() {
+        r = 0.0;
+    }
+    if g.is_nan() {
+        g = 0.0;
+    }
+    if b.is_nan() {
+        b = 0.0;
+    }
 
     // Gamma-correct for gamma=2.0
-    let r = r.sqrt();
-    let g = g.sqrt();
-    let b = b.sqrt();
+    r = r.sqrt();
+    g = g.sqrt();
+    b = b.sqrt();
 
     let r = (clamp(r, 0.0, 0.999) * (256_f64)).floor() as u8;
     let g = (clamp(g, 0.0, 0.999) * (256_f64)).floor() as u8;
@@ -147,6 +176,7 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
 fn create_thread(
     line_pool: Arc<Mutex<u32>>,
     world: BvhNode,
+    lights: HittableList,
     background: Color,
     cam: Camera,
     bars: Arc<MultiProgress>,
@@ -186,14 +216,6 @@ fn create_thread(
                         let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
                         let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
                         let r = cam.get_ray(u, v);
-                        let lights = XZRect {
-                            x0: 213.0,
-                            x1: 343.0,
-                            z0: 227.0,
-                            z1: 332.0,
-                            k: 554.0,
-                            mat: DiffuseLight::new_by_color(Vec3(15.0, 15.0, 15.0)),
-                        };
                         pixel_colors += ray_color(&r, &background, &world, &lights, MAX_DEPTH);
                     }
                     line_color.push(pixel_colors);
@@ -212,7 +234,7 @@ fn world_generator(
     lookat: &mut Vec3,
     vfov: &mut f64,
     aperture: &mut f64,
-) -> BvhNode {
+) -> (BvhNode, HittableList) {
     let opt = 6;
     if opt == 1 {
         *background = Color::new(0.7, 0.8, 1.0);
@@ -220,32 +242,47 @@ fn world_generator(
         *lookat = Vec3(0.0, 0.0, 0.0);
         *vfov = 20.0;
         *aperture = 0.1;
-        BvhNode::new_from_list(random_scene(), 0.0, 1.0)
+        (
+            BvhNode::new_from_list(random_scene(), 0.0, 1.0),
+            HittableList::default(),
+        )
     } else if opt == 2 {
         *background = Color::new(0.7, 0.8, 1.0);
         *lookfrom = Vec3(13.0, 2.0, 3.0);
         *lookat = Vec3(0.0, 0.0, 0.0);
         *vfov = 20.0;
-        BvhNode::new_from_list(two_spheres(), 0.0, 0.0)
+        (
+            BvhNode::new_from_list(two_spheres(), 0.0, 0.0),
+            HittableList::default(),
+        )
     } else if opt == 3 {
         *background = Color::new(0.7, 0.8, 1.0);
         *lookfrom = Vec3(13.0, 2.0, 3.0);
         *lookat = Vec3(0.0, 0.0, 0.0);
         *vfov = 20.0;
-        BvhNode::new_from_list(two_perlin_spheres(), 0.0, 0.0)
+        (
+            BvhNode::new_from_list(two_perlin_spheres(), 0.0, 0.0),
+            HittableList::default(),
+        )
     } else if opt == 4 {
         *background = Color::new(0.7, 0.8, 1.0);
         *lookfrom = Vec3(13.0, 2.0, 3.0);
         *lookat = Vec3(0.0, 0.0, 0.0);
         *vfov = 20.0;
-        BvhNode::new_from_list(earth(), 0.0, 0.0)
+        (
+            BvhNode::new_from_list(earth(), 0.0, 0.0),
+            HittableList::default(),
+        )
     } else if opt == 5 {
         // SAMPLES_PER_PIXEL should be 400 or more
         *background = Color::new(0.0, 0.0, 0.0);
         *lookfrom = Vec3(26.0, 3.0, 6.0);
         *lookat = Vec3(0.0, 2.0, 0.0);
         *vfov = 20.0;
-        BvhNode::new_from_list(simple_light(), 0.0, 0.0)
+        (
+            BvhNode::new_from_list(simple_light(), 0.0, 0.0),
+            HittableList::default(),
+        )
     } else if opt == 6 {
         // aspect_ratio = 1.0
         // image_width = 600
@@ -254,16 +291,8 @@ fn world_generator(
         *lookfrom = Vec3(278.0, 278.0, -800.0);
         *lookat = Vec3(278.0, 278.0, 0.0);
         *vfov = 40.0;
-        BvhNode::new_from_list(cornell_box(), 0.0, 1.0)
-    } else if opt == 7 {
-        // aspect_ratio = 1.0
-        // image_width = 600
-        // samples_per_pixel = 200
-        *background = Color::new(0.0, 0.0, 0.0);
-        *lookfrom = Vec3(278.0, 278.0, -800.0);
-        *lookat = Vec3(278.0, 278.0, 0.0);
-        *vfov = 40.0;
-        BvhNode::new_from_list(cornell_smoke(), 0.0, 0.0)
+        let (world, lights) = cornell_box();
+        (BvhNode::new_from_list(world, 0.0, 1.0), lights)
     } else {
         // aspect_ratio = 1.0
         // image_width = 800
@@ -272,13 +301,16 @@ fn world_generator(
         *lookfrom = Vec3(478.0, 278.0, -600.0);
         *lookat = Vec3(278.0, 278.0, 0.0);
         *vfov = 40.0;
-        BvhNode::new_from_list(final_scene(), 0.0, 1.0)
+        (
+            BvhNode::new_from_list(final_scene(), 0.0, 1.0),
+            HittableList::default(),
+        )
     }
 }
 
 fn main() {
     // Output Path
-    let path = "output/image3-8.jpg";
+    let path = "output/cornell_box.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);
@@ -307,7 +339,7 @@ fn main() {
 
     // Multi-Thread
     for _id in 0..THREAD_NUM {
-        let world = world_generator(
+        let (world, lights) = world_generator(
             &mut background,
             &mut lookfrom,
             &mut lookat,
@@ -329,6 +361,7 @@ fn main() {
         thread_list.push(create_thread(
             line_pool.clone(),
             world,
+            lights,
             background,
             cam,
             multiprogress.clone(),

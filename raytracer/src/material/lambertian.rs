@@ -2,15 +2,15 @@ use std::f64::consts::PI;
 
 use crate::{
     basic::{
-        onb::Onb,
         ray::Ray,
-        vec3::{dot, random_cosine_direction, Color},
+        vec3::{dot, Color},
     },
     hittable::HitRecord,
+    pdf::cos_pdf::CosPDF,
     texture::{solid_color_texture::SolidColor, Texture},
 };
 
-use super::Material;
+use super::{Material, ScatterRecord};
 
 #[derive(Clone, Copy)]
 pub struct Lambertian<TT>
@@ -38,23 +38,18 @@ impl<TT> Material for Lambertian<TT>
 where
     TT: Texture,
 {
-    fn scatter(
+    fn scatter<'a>(
         &self,
-        r_in: &Ray,
+        _r_in: &Ray,
         rec: &HitRecord,
-        alb: &mut Color,
-        scattered: &mut Ray,
-        pdf: &mut f64,
+        srec: &'a mut Option<ScatterRecord>,
     ) -> bool {
-        let uvw = Onb::build_from_w(&rec.normal);
-        let direction = uvw.local_by_vec3(random_cosine_direction());
-        *scattered = Ray {
-            orig: rec.p,
-            dir: direction.unit_vec(),
-            tm: r_in.tm,
-        };
-        *alb = self.albedo.value(rec.u, rec.v, &rec.p);
-        *pdf = dot(&uvw.w(), &scattered.dir) / PI;
+        *srec = Some(ScatterRecord {
+            specular_ray: Default::default(),
+            is_specular: false,
+            attenuation: self.albedo.value(rec.u, rec.v, &rec.p),
+            pdf_func: Some(Box::new(CosPDF::new_from_normal(&rec.normal))),
+        });
         true
     }
     #[allow(unused_variables)]

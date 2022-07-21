@@ -24,16 +24,6 @@ impl DiffuseLight {
 
 impl Material for DiffuseLight {
     #[allow(unused_variables)]
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        alb: &mut Color,
-        scattered: &mut Ray,
-        pdf: &mut f64,
-    ) -> bool {
-        false
-    }
     fn emitted(&self, _r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         if rec.front_face {
             self.emit.value(u, v, p)

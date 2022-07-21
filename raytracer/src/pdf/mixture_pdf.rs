@@ -2,41 +2,26 @@ use crate::basic::{random_double_unit, vec3::Vec3};
 
 use super::PDF;
 
-pub struct MixturePDF<TP0, TP1>
-where
-    TP0: PDF,
-    TP1: PDF,
-{
-    pub p: (TP0, TP1),
+pub struct MixturePDF<'a> {
+    pub p: [Box<dyn PDF + 'a>; 2],
 }
 
-impl<TP0, TP1> MixturePDF<TP0, TP1>
-where
-    TP0: PDF,
-    TP1: PDF,
-{
-    pub fn new(p0: TP0, p1: TP1) -> MixturePDF<TP0, TP1>
-    where
-        TP0: PDF,
-        TP1: PDF,
-    {
-        MixturePDF { p: (p0, p1) }
+impl<'a> MixturePDF<'a> {
+    pub fn new(p0: Box<dyn PDF + 'a>, p1: Box<dyn PDF + 'a>) -> MixturePDF<'a> {
+        MixturePDF { p: [p0, p1] }
     }
 }
 
-impl<TP0, TP1> PDF for MixturePDF<TP0, TP1>
-where
-    TP0: PDF,
-    TP1: PDF,
-{
+impl<'a> PDF for MixturePDF<'a> {
+    // p0 hittable-pdf p1 self-scatter-pdf
     fn value(&self, direction: &Vec3) -> f64 {
-        0.5 * self.p.0.value(direction) + 0.5 * self.p.1.value(direction)
+        0.35 * self.p[0].value(direction) + 0.65 * self.p[1].value(direction)
     }
     fn generate(&self) -> Vec3 {
-        if random_double_unit() < 0.5 {
-            self.p.0.generate()
+        if random_double_unit() < 0.35 {
+            self.p[0].generate()
         } else {
-            self.p.1.generate()
+            self.p[1].generate()
         }
     }
 }

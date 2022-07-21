@@ -2,12 +2,12 @@ use crate::{
     basic::{
         random_double_unit,
         ray::Ray,
-        vec3::{dot, reflect, refract, Color},
+        vec3::{dot, reflect, refract, Vec3},
     },
     hittable::HitRecord,
 };
 
-use super::Material;
+use super::{Material, ScatterRecord};
 
 #[derive(Clone, Copy)]
 pub struct Dielectric {
@@ -23,15 +23,7 @@ impl Dielectric {
 
 impl Material for Dielectric {
     #[allow(unused_variables)]
-    fn scatter(
-        &self,
-        r_in: &Ray,
-        rec: &HitRecord,
-        alb: &mut Color,
-        scattered: &mut Ray,
-        pdf: &mut f64,
-    ) -> bool {
-        *alb = Color::new(1.0, 1.0, 1.0);
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut Option<ScatterRecord>) -> bool {
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
         } else {
@@ -51,12 +43,16 @@ impl Material for Dielectric {
             refract(&unit_direction, &rec.normal, refraction_ratio)
         };
 
-        *scattered = Ray {
-            orig: rec.p,
-            dir: direction,
-            tm: r_in.tm,
-        };
-
+        *srec = Some(ScatterRecord {
+            specular_ray: Ray {
+                orig: rec.p,
+                dir: direction,
+                tm: r_in.tm,
+            },
+            is_specular: true,
+            attenuation: Vec3(1.0, 1.0, 1.0),
+            pdf_func: None,
+        });
         true
     }
 }
