@@ -17,15 +17,10 @@ use hittable::{hittable_list::HittableList, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pdf::{hittable_pdf::HittablePDF, mixture_pdf::MixturePDF, PDF};
+use scenes::test_scene::test_scene;
 
 use crate::{
     bvh::BvhNode,
-    scenes::{
-        book1_final_scene::random_scene,
-        book2_final_scene::final_scene,
-        cornell_box_sences::cornell_box,
-        sphere_scenes::{earth, simple_light, two_perlin_spheres, two_spheres},
-    },
     status_bar::{show_image_information, show_thread_information},
 };
 
@@ -115,7 +110,7 @@ fn ray_color(
         },
     );
 
-    let mut scattered = Ray {
+    let scattered = Ray {
         orig: rec_data.p,
         dir: mixed_pdf.generate(),
         tm: r.tm,
@@ -125,9 +120,7 @@ fn ray_color(
 
     emitted
         + srec_data.attenuation
-            * rec_data
-                .mat_ptr
-                .scattering_pdf(r, &rec_data, &mut scattered)
+            * rec_data.mat_ptr.scattering_pdf(r, &rec_data, &scattered)
             * ray_color(&scattered, background, world, lights, depth - 1)
             / pdf_val
 }
@@ -175,13 +168,14 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
 
 fn create_thread(
     line_pool: Arc<Mutex<u32>>,
-    world: BvhNode,
+    world: HittableList,
     lights: HittableList,
     background: Color,
     cam: Camera,
     bars: Arc<MultiProgress>,
 ) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
     let mut ret = Vec::<_>::new();
+    let world = BvhNode::new_from_list(world, 0.0, 1.0);
     thread::spawn(move || {
         // Set Progress Bar for this thread
         let now_bar = bars.add(ProgressBar::new((IMAGE_HEIGHT / THREAD_NUM) as u64));
@@ -228,89 +222,27 @@ fn create_thread(
     })
 }
 
+#[allow(unused_variables)]
 fn world_generator(
     background: &mut Color,
     lookfrom: &mut Vec3,
     lookat: &mut Vec3,
     vfov: &mut f64,
     aperture: &mut f64,
-) -> (BvhNode, HittableList) {
-    let opt = 6;
-    if opt == 1 {
-        *background = Color::new(0.7, 0.8, 1.0);
-        *lookfrom = Vec3(13.0, 2.0, 3.0);
-        *lookat = Vec3(0.0, 0.0, 0.0);
-        *vfov = 20.0;
-        *aperture = 0.1;
-        (
-            BvhNode::new_from_list(random_scene(), 0.0, 1.0),
-            HittableList::default(),
-        )
-    } else if opt == 2 {
-        *background = Color::new(0.7, 0.8, 1.0);
-        *lookfrom = Vec3(13.0, 2.0, 3.0);
-        *lookat = Vec3(0.0, 0.0, 0.0);
-        *vfov = 20.0;
-        (
-            BvhNode::new_from_list(two_spheres(), 0.0, 0.0),
-            HittableList::default(),
-        )
-    } else if opt == 3 {
-        *background = Color::new(0.7, 0.8, 1.0);
-        *lookfrom = Vec3(13.0, 2.0, 3.0);
-        *lookat = Vec3(0.0, 0.0, 0.0);
-        *vfov = 20.0;
-        (
-            BvhNode::new_from_list(two_perlin_spheres(), 0.0, 0.0),
-            HittableList::default(),
-        )
-    } else if opt == 4 {
-        *background = Color::new(0.7, 0.8, 1.0);
-        *lookfrom = Vec3(13.0, 2.0, 3.0);
-        *lookat = Vec3(0.0, 0.0, 0.0);
-        *vfov = 20.0;
-        (
-            BvhNode::new_from_list(earth(), 0.0, 0.0),
-            HittableList::default(),
-        )
-    } else if opt == 5 {
-        // SAMPLES_PER_PIXEL should be 400 or more
-        *background = Color::new(0.0, 0.0, 0.0);
-        *lookfrom = Vec3(26.0, 3.0, 6.0);
-        *lookat = Vec3(0.0, 2.0, 0.0);
-        *vfov = 20.0;
-        (
-            BvhNode::new_from_list(simple_light(), 0.0, 0.0),
-            HittableList::default(),
-        )
-    } else if opt == 6 {
-        // aspect_ratio = 1.0
-        // image_width = 600
-        // samples_per_pixel = 200
-        *background = Color::new(0.0, 0.0, 0.0);
-        *lookfrom = Vec3(278.0, 278.0, -800.0);
-        *lookat = Vec3(278.0, 278.0, 0.0);
-        *vfov = 40.0;
-        let (world, lights) = cornell_box();
-        (BvhNode::new_from_list(world, 0.0, 1.0), lights)
-    } else {
-        // aspect_ratio = 1.0
-        // image_width = 800
-        // samples_per_pixel = 10000
-        *background = Color::new(0.0, 0.0, 0.0);
-        *lookfrom = Vec3(478.0, 278.0, -600.0);
-        *lookat = Vec3(278.0, 278.0, 0.0);
-        *vfov = 40.0;
-        (
-            BvhNode::new_from_list(final_scene(), 0.0, 1.0),
-            HittableList::default(),
-        )
-    }
+) -> (HittableList, HittableList) {
+    // aspect_ratio = 1.0
+    // image_width = 600
+    // samples_per_pixel = 200
+    *background = Color::new(0.0, 0.0, 0.0);
+    *lookfrom = Vec3(278.0, 278.0, -800.0);
+    *lookat = Vec3(278.0, 278.0, 0.0);
+    *vfov = 40.0;
+    test_scene()
 }
 
 fn main() {
     // Output Path
-    let path = "output/cornell_box.jpg";
+    let path = "output/test.jpg";
 
     // Camera
     let mut background = Color::new(0.0, 0.0, 0.0);

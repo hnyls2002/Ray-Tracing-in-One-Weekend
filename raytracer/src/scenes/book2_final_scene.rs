@@ -16,6 +16,7 @@ use crate::{
     },
 };
 
+#[allow(dead_code)]
 pub fn final_scene() -> HittableList {
     let mut boxes1 = HittableList { objects: vec![] };
     let ground_material = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.48, 0.83, 0.53));

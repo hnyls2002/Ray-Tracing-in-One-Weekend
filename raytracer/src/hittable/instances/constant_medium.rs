@@ -27,6 +27,7 @@ impl<TH: Hittable> ConstantMedium<TH> {
             neg_inv_density: -1.0 / d,
         }
     }
+    #[allow(dead_code)]
     pub fn new_by_color(b: TH, d: f64, c: Color) -> ConstantMedium<TH> {
         ConstantMedium {
             boundary: b,

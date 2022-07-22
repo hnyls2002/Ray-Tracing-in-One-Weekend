@@ -53,7 +53,7 @@ where
         true
     }
     #[allow(unused_variables)]
-    fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &mut Ray) -> f64 {
+    fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
         let cosine = dot(&rec.normal, &scattered.dir.unit_vec());
         if cosine < 0.0 {
             0.0

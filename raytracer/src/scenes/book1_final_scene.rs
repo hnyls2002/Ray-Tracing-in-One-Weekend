@@ -10,6 +10,7 @@ use crate::{
     texture::{checker_texture::CheckerTexture, solid_color_texture::SolidColor},
 };
 
+#[allow(dead_code)]
 pub fn random_scene() -> HittableList {
     let mut world = HittableList { objects: vec![] };
     let checker = CheckerTexture::<SolidColor, SolidColor>::new_by_color(
