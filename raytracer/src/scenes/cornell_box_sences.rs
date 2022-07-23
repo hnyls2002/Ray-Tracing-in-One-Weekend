@@ -15,6 +15,7 @@ use crate::{
     texture::solid_color_texture::SolidColor,
 };
 
+#[allow(dead_code)]
 pub fn cornell_box() -> (HittableList, HittableList) {
     let mut list = HittableList { objects: vec![] };
     let red = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.65, 0.05, 0.05));

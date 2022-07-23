@@ -35,7 +35,7 @@ impl Material for Isotropic {
                 tm: r_in.tm,
             },
 
-            is_specular: false,
+            is_specular: true,
             attenuation: self.albedo.value(rec.u, rec.v, &rec.p),
             pdf_func: None,
         });

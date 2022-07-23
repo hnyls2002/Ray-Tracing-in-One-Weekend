@@ -11,6 +11,7 @@ use crate::{
     },
 };
 
+#[allow(dead_code)]
 pub fn two_spheres() -> HittableList {
     let mut list = HittableList { objects: vec![] };
     let checker = CheckerTexture::<SolidColor, SolidColor>::new_by_color(
@@ -30,6 +31,7 @@ pub fn two_spheres() -> HittableList {
     list
 }
 
+#[allow(dead_code)]
 pub fn two_perlin_spheres() -> HittableList {
     let mut list = HittableList { objects: vec![] };
     // Generate texture
@@ -52,6 +54,7 @@ pub fn two_perlin_spheres() -> HittableList {
     list
 }
 
+#[allow(dead_code)]
 pub fn earth() -> HittableList {
     let earth_texture = ImageTexture::load_image_file("./raytracer/sources/yiyan.jpg");
     let earth_surface = Lambertian {
@@ -67,6 +70,7 @@ pub fn earth() -> HittableList {
     list
 }
 
+#[allow(dead_code)]
 pub fn simple_light() -> HittableList {
     let mut list = HittableList { objects: vec![] };
     let pertext = NoiseTexture::new_by_sc(4.0);

@@ -5,7 +5,10 @@ use crate::{
     bvh::BvhNode,
     hittable::{
         hittable_list::HittableList,
-        instances::{constant_medium::ConstantMedium, rotate_y::RotateY, translate::Translate},
+        instances::{
+            constant_medium::ConstantMedium, flip_face::FlipFace, rotate_y::RotateY,
+            translate::Translate,
+        },
         objects::{aarect::XZRect, moving_sphere::MovingSphere, my_box::MyBox, sphere::Sphere},
     },
     material::{
@@ -16,7 +19,7 @@ use crate::{
     },
 };
 
-pub fn final_scene() -> HittableList {
+pub fn final_scene() -> (HittableList, HittableList) {
     let mut boxes1 = HittableList { objects: vec![] };
     let ground_material = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.48, 0.83, 0.53));
 
@@ -47,7 +50,20 @@ pub fn final_scene() -> HittableList {
 
     let light = DiffuseLight::new_by_color(Vec3(7.0, 7.0, 7.0));
 
-    objects.add(Box::new(XZRect {
+    let light_rect = FlipFace {
+        obj: XZRect {
+            x0: 123.0,
+            x1: 423.0,
+            z0: 147.0,
+            z1: 412.0,
+            k: 554.0,
+            mat: light,
+        },
+    };
+    objects.add(Box::new(light_rect));
+
+    let mut lights = HittableList::default();
+    lights.add(Box::new(XZRect {
         x0: 123.0,
         x1: 423.0,
         z0: 147.0,
@@ -74,6 +90,13 @@ pub fn final_scene() -> HittableList {
         radius: 50.0,
         mat: Dielectric { ir: 1.5 },
     }));
+
+    lights.add(Box::new(Sphere {
+        center: Vec3(260.0, 150.0, 45.0),
+        radius: 50.0,
+        mat: Dielectric { ir: 1.5 },
+    }));
+
     objects.add(Box::new(Sphere {
         center: Vec3(0.0, 150.0, 145.0),
         radius: 50.0,
@@ -109,7 +132,7 @@ pub fn final_scene() -> HittableList {
     )));
 
     let earth_material = Lambertian::new_by_texture(ImageTexture::load_image_file(
-        "./raytracer/sources/yiyan.jpg",
+        "./raytracer/sources/earthmap.jpg",
     ));
 
     let image_sphere = Box::new(Sphere {
@@ -147,5 +170,5 @@ pub fn final_scene() -> HittableList {
         offset: Vec3(-100.0, 270.0, 395.0),
     }));
 
-    objects
+    (objects, lights)
 }
