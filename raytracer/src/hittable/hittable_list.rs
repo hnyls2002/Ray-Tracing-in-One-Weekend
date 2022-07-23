@@ -51,7 +51,7 @@ impl Hittable for HittableList {
         let mut tmp_box = Aabb::default();
         let mut first_box = true;
         for object in &self.objects {
-            if object.bounding_box(time0, time1, &mut tmp_box) {
+            if !object.bounding_box(time0, time1, &mut tmp_box) {
                 return false;
             }
             *output_box = if first_box {

@@ -2,6 +2,7 @@ use std::f64::INFINITY;
 
 use crate::{
     basic::{
+        degrees_to_radians,
         ray::Ray,
         vec3::{cross, dot, Point3, Vec3},
     },
@@ -10,6 +11,7 @@ use crate::{
     material::Material,
 };
 
+#[derive(Clone, Copy)]
 pub struct Triangle<TM: Material> {
     pub p: [Point3; 3],
     pub norm: Vec3,
@@ -22,6 +24,46 @@ impl<TM: Material> Triangle<TM> {
             p: [p0, p1, p2],
             norm: cross(&(p1 - p0), &(p2 - p0)).unit_vec(),
             mat,
+        }
+    }
+    pub fn zoom(&mut self, origin: Vec3, b: f64) {
+        for i in 0..3 {
+            let offset = self.p[i] - origin;
+            self.p[i] = origin + offset * b;
+        }
+    }
+    pub fn trans(&mut self, offset: Vec3) {
+        for i in 0..3 {
+            self.p[i] += offset;
+        }
+    }
+    pub fn rotate_xyz(&mut self, center: Vec3, r_x: f64, r_y: f64, r_z: f64) {
+        for i in 0..3 {
+            self.p[i] = self.p[i] - center;
+        }
+
+        let cos_x = degrees_to_radians(r_x).cos();
+        let sin_x = degrees_to_radians(r_x).sin();
+        for i in 0..3 {
+            self.p[i].1 = cos_x * self.p[i].1 - sin_x * self.p[i].2;
+            self.p[i].2 = sin_x * self.p[i].1 + cos_x * self.p[i].2;
+        }
+
+        let cos_y = degrees_to_radians(r_y).cos();
+        let sin_y = degrees_to_radians(r_y).sin();
+        for i in 0..3 {
+            self.p[i].0 = cos_y * self.p[i].0 - sin_y * self.p[i].2;
+            self.p[i].2 = sin_y * self.p[i].0 + cos_y * self.p[i].2;
+        }
+
+        let cos_z = degrees_to_radians(r_z).cos();
+        let sin_z = degrees_to_radians(r_z).sin();
+        for i in 0..3 {
+            self.p[i].0 = cos_z * self.p[i].0 - sin_z * self.p[i].1;
+            self.p[i].1 = sin_z * self.p[i].0 + cos_z * self.p[i].1;
+        }
+        for i in 0..3 {
+            self.p[i] += center;
         }
     }
 }

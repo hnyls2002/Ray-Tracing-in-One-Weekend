@@ -19,16 +19,14 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pdf::{hittable_pdf::HittablePDF, mixture_pdf::MixturePDF, PDF};
 use scenes::test_scene::test_scene;
 
-use crate::{
-    bvh::BvhNode,
-    status_bar::{show_image_information, show_thread_information},
-};
+use crate::status_bar::{show_image_information, show_thread_information};
 
 mod basic;
 mod bvh;
 mod camera;
 mod hittable;
 mod material;
+mod obj_loader;
 mod pdf;
 mod scenes;
 mod status_bar;
@@ -38,12 +36,12 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 2000;
+const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
 const THREAD_NUM: u32 = 20;
-const LINES_PER_ISSUE: u32 = 10;
+const LINES_PER_ISSUE: u32 = 1;
 
 fn ray_color(
     r: &Ray,
@@ -175,7 +173,6 @@ fn create_thread(
     bars: Arc<MultiProgress>,
 ) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
     let mut ret = Vec::<_>::new();
-    let world = BvhNode::new_from_list(world, 0.0, 1.0);
     thread::spawn(move || {
         // Set Progress Bar for this thread
         let now_bar = bars.add(ProgressBar::new((IMAGE_HEIGHT / THREAD_NUM) as u64));

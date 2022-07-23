@@ -61,9 +61,10 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct XZRect<TM>
 where
-    TM: Material,
+    TM: Material + Clone,
 {
     pub x0: f64,
     pub x1: f64,
@@ -75,7 +76,7 @@ where
 
 impl<TM> Hittable for XZRect<TM>
 where
-    TM: Material,
+    TM: Material + Clone,
 {
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut Aabb) -> bool {
         *output_box = Aabb {
