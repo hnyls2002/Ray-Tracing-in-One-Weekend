@@ -148,9 +148,9 @@ pub fn test_scene() -> (HittableList, LightableList) {
         r_z: 60.0,
     };
 
-    list.add(my_loader(_baseball_option));
-    list.add(my_loader(_baseball_bat_option));
-    //list.add(my_loader(_patrick_option));
+    //list.add(my_loader(_baseball_option));
+    //list.add(my_loader(_baseball_bat_option));
+    list.add(my_loader(_patrick_option));
 
     let mut lights = LightableList::default();
     lights.add(Box::new(light_top));

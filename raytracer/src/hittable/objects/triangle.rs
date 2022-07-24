@@ -81,11 +81,7 @@ impl<TM: Material> Triangle<TM> {
             self.p[i] += center;
         }
     }
-}
-
-impl<TM: Material> Hittable for Triangle<TM> {
-    #[allow(clippy::many_single_char_names)]
-    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
+    fn get_hit_point(&self, r: &Ray) -> (Vec3, f64) {
         let e1 = self.p[1] - self.p[0];
         let e2 = self.p[2] - self.p[0];
         let s = r.orig - self.p[0];
@@ -99,20 +95,45 @@ impl<TM: Material> Hittable for Triangle<TM> {
         b[1] = dot(&s1, &s) * div;
         b[2] = dot(&s2, &r.dir) * div;
         b[0] = 1.0 - b[1] - b[2];
-        let hit_point = self.p[0] * b[0] + self.p[1] * b[1] + self.p[2] * b[2];
-        let normal = (self.norm[0] * b[0] + self.norm[1] * b[1] + self.norm[2] * b[2]).unit_vec();
+
+        (self.p[0] * b[0] + self.p[1] * b[1] + self.p[2] * b[2], t)
+    }
+    fn get_barycentric_coordinates(&self, hit_point: &Vec3) -> [f64; 3] {
+        // get real barycentric coordinates
+        let mut n: [Vec3; 3] = Default::default();
+        let area_vec = cross(&(self.p[1] - self.p[0]), &(self.p[2] - self.p[0]));
+        n[0] = cross(&(self.p[2] - self.p[1]), &(*hit_point - self.p[1]));
+        n[1] = cross(&(self.p[0] - self.p[2]), &(*hit_point - self.p[2]));
+        n[2] = cross(&(self.p[1] - self.p[0]), &(*hit_point - self.p[0]));
+
+        let mut c: [f64; 3] = Default::default();
+        c[0] = dot(&n[0], &area_vec) / area_vec.length().powi(2);
+        c[1] = dot(&n[1], &area_vec) / area_vec.length().powi(2);
+        c[2] = dot(&n[2], &area_vec) / area_vec.length().powi(2);
+        c
+    }
+}
+
+impl<TM: Material> Hittable for Triangle<TM> {
+    #[allow(clippy::many_single_char_names)]
+    fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
+        let (hit_point, t) = self.get_hit_point(r);
 
         if t < t_min || t > t_max {
             return false;
         }
 
+        let c = self.get_barycentric_coordinates(&hit_point);
+
+        let normal = (self.norm[0] * c[0] + self.norm[1] * c[1] + self.norm[2] * c[2]).unit_vec();
+
+        // get texture-coordinates
         let mut u = 0.0;
         let mut v = 0.0;
-
         #[allow(clippy::needless_range_loop)]
         for i in 0..3 {
-            u += self.tex[i].0 * b[i];
-            v += self.tex[i].1 * b[i];
+            u += self.tex[i].0 * c[i];
+            v += self.tex[i].1 * c[i];
         }
 
         let mut rec_data = HitRecord {
@@ -127,7 +148,7 @@ impl<TM: Material> Hittable for Triangle<TM> {
 
         rec_data.set_face_normal(r, &normal);
 
-        if (b[1] >= 0.0) && (b[2] >= 0.0) && (b[1] + b[2] <= 1.0) {
+        if (c[1] >= 0.0) && (c[2] >= 0.0) && (c[1] + c[2] <= 1.0) {
             // Attention!!!
             // only when hit object, the rec can be Some(_)
             *rec = Some(rec_data);
