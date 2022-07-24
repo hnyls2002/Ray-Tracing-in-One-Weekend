@@ -45,31 +45,38 @@ impl<TM: Material> Triangle<TM> {
             self.p[i] += offset;
         }
     }
+    #[allow(clippy::needless_range_loop)]
     pub fn rotate_xyz(&mut self, center: Vec3, r_x: f64, r_y: f64, r_z: f64) {
+        let mut op: [Vec3; 3] = Default::default();
+
         for i in 0..3 {
             self.p[i] = self.p[i] - center;
+            op[i] = self.p[i];
         }
 
         let cos_x = degrees_to_radians(r_x).cos();
         let sin_x = degrees_to_radians(r_x).sin();
         for i in 0..3 {
-            self.p[i].1 = cos_x * self.p[i].1 - sin_x * self.p[i].2;
-            self.p[i].2 = sin_x * self.p[i].1 + cos_x * self.p[i].2;
+            self.p[i].1 = cos_x * op[i].1 - sin_x * op[i].2;
+            self.p[i].2 = sin_x * op[i].1 + cos_x * op[i].2;
+            op[i] = self.p[i];
         }
 
         let cos_y = degrees_to_radians(r_y).cos();
         let sin_y = degrees_to_radians(r_y).sin();
         for i in 0..3 {
-            self.p[i].0 = cos_y * self.p[i].0 - sin_y * self.p[i].2;
-            self.p[i].2 = sin_y * self.p[i].0 + cos_y * self.p[i].2;
+            self.p[i].0 = cos_y * op[i].0 - sin_y * op[i].2;
+            self.p[i].2 = sin_y * op[i].0 + cos_y * op[i].2;
+            op[i] = self.p[i];
         }
 
         let cos_z = degrees_to_radians(r_z).cos();
         let sin_z = degrees_to_radians(r_z).sin();
         for i in 0..3 {
-            self.p[i].0 = cos_z * self.p[i].0 - sin_z * self.p[i].1;
-            self.p[i].1 = sin_z * self.p[i].0 + cos_z * self.p[i].1;
+            self.p[i].0 = cos_z * op[i].0 - sin_z * op[i].1;
+            self.p[i].1 = sin_z * op[i].0 + cos_z * op[i].1;
         }
+
         for i in 0..3 {
             self.p[i] += center;
         }

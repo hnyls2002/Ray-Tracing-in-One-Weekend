@@ -38,8 +38,8 @@ mod texture;
 const ASPECT_RATIO: f64 = 1.0;
 const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 500;
-const MAX_DEPTH: i32 = 50;
+const SAMPLES_PER_PIXEL: u32 = 2000;
+const MAX_DEPTH: i32 = 100;
 
 // Threads
 const THREAD_NUM: u32 = 20;

@@ -115,7 +115,42 @@ pub fn test_scene() -> (HittableList, LightableList) {
         r_z: 0.0,
     };
 
-    list.add(my_loader(_hutao_option));
+    let _patrick_option = LoadOption {
+        path: "./raytracer/sources/someobj/",
+        file_name: "patrick",
+        zoom_rate: 200.0,
+        zoom_orig: Vec3(0.0, 0.0, 0.0),
+        offset: Vec3(270.0, 0.0, 250.0),
+        r_x: -20.0,
+        r_y: 180.0,
+        r_z: 0.0,
+    };
+
+    let _baseball_option = LoadOption {
+        path: "./raytracer/sources/someobj/",
+        file_name: "10483_baseball_v1_L3",
+        zoom_rate: 7.0,
+        zoom_orig: Vec3(0.0, 0.0, 0.0),
+        offset: Vec3(440.0, 270.0, 150.0),
+        r_x: -20.0,
+        r_y: 180.0,
+        r_z: 0.0,
+    };
+
+    let _baseball_bat_option = LoadOption {
+        path: "./raytracer/sources/someobj/",
+        file_name: "10485_Baseball_bat_v1_max2011_iteration-2",
+        zoom_rate: 7.0,
+        zoom_orig: Vec3(0.0, 0.0, 0.0),
+        offset: Vec3(270.0, 230.0, 150.0),
+        r_x: 0.0,
+        r_y: 0.0,
+        r_z: 60.0,
+    };
+
+    list.add(my_loader(_baseball_option));
+    list.add(my_loader(_baseball_bat_option));
+    //list.add(my_loader(_patrick_option));
 
     let mut lights = LightableList::default();
     lights.add(Box::new(light_top));
