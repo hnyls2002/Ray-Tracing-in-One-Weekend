@@ -3,6 +3,7 @@ use std::f64::INFINITY;
 use crate::{
     basic::{onb::Onb, random_double_unit, PI},
     hittable::{HitRecord, Hittable},
+    pdf::lightable_list::Lightable,
 };
 
 use crate::{
@@ -75,6 +76,9 @@ impl<TM: Material> Hittable for Sphere<TM> {
         };
         true
     }
+}
+
+impl<TM: Material> Lightable for Sphere<TM> {
     fn pdf_value(&self, o: &Point3, v: &Vec3) -> f64 {
         let mut rec = None;
         if !self.hit(

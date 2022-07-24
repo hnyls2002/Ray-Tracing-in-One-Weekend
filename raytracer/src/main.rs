@@ -5,6 +5,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use crate::status_bar::{show_image_information, show_thread_information};
 use basic::{
     clamp, random_double_unit,
     ray::Ray,
@@ -16,10 +17,11 @@ use console::style;
 use hittable::{hittable_list::HittableList, Hittable};
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use pdf::{hittable_pdf::HittablePDF, mixture_pdf::MixturePDF, PDF};
+use pdf::{
+    hittable_pdf::HittablePDF, lightable_list::Lightable, lightable_list::LightableList,
+    mixture_pdf::MixturePDF, PDF,
+};
 use scenes::test_scene::test_scene;
-
-use crate::status_bar::{show_image_information, show_thread_information};
 
 mod basic;
 mod bvh;
@@ -34,9 +36,9 @@ mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 1.0;
-const IMAGE_WIDTH: u32 = 600;
+const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 1000;
+const SAMPLES_PER_PIXEL: u32 = 500;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -47,7 +49,7 @@ fn ray_color(
     r: &Ray,
     background: &Color,
     world: &dyn Hittable,
-    lights: &dyn Hittable,
+    lights: &dyn Lightable,
     depth: i32,
 ) -> Color {
     let mut rec = None;
@@ -167,7 +169,7 @@ fn output_image(path: &str, img: &RgbImage, quality: u8) {
 fn create_thread(
     line_pool: Arc<Mutex<u32>>,
     world: HittableList,
-    lights: HittableList,
+    lights: LightableList,
     background: Color,
     cam: Camera,
     bars: Arc<MultiProgress>,
@@ -226,7 +228,7 @@ fn world_generator(
     lookat: &mut Vec3,
     vfov: &mut f64,
     aperture: &mut f64,
-) -> (HittableList, HittableList) {
+) -> (HittableList, LightableList) {
     // aspect_ratio = 1.0
     // image_width = 600
     // samples_per_pixel = 200
@@ -265,6 +267,17 @@ fn main() {
 
     // Show the Threads Information
     show_thread_information();
+
+    /*
+    let (world, lights) = world_generator(
+        &mut background,
+        &mut lookfrom,
+        &mut lookat,
+        &mut vfov,
+        &mut aperture,
+    );
+    exit(0);
+    */
 
     // Multi-Thread
     for _id in 0..THREAD_NUM {

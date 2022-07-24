@@ -14,15 +14,23 @@ use crate::{
 #[derive(Clone, Copy)]
 pub struct Triangle<TM: Material> {
     pub p: [Point3; 3],
-    pub norm: Vec3,
+    pub tex: [(f64, f64); 3],
+    pub norm: [Vec3; 3],
     pub mat: TM,
 }
 
 impl<TM: Material> Triangle<TM> {
-    pub fn new(p0: Point3, p1: Point3, p2: Point3, mat: TM) -> Triangle<TM> {
+    pub fn new_from_obj(
+        pt: &[Vec3],
+        nm: &[Vec3],
+        tx: &[(f64, f64)],
+        idx: [usize; 3],
+        mat: TM,
+    ) -> Triangle<TM> {
         Triangle::<TM> {
-            p: [p0, p1, p2],
-            norm: cross(&(p1 - p0), &(p2 - p0)).unit_vec(),
+            p: [pt[idx[0]], pt[idx[1]], pt[idx[2]]],
+            tex: [tx[idx[0]], tx[idx[1]], tx[idx[2]]],
+            norm: [nm[idx[0]], nm[idx[1]], nm[idx[2]]],
             mat,
         }
     }
@@ -69,6 +77,7 @@ impl<TM: Material> Triangle<TM> {
 }
 
 impl<TM: Material> Hittable for Triangle<TM> {
+    #[allow(clippy::many_single_char_names)]
     fn hit<'a>(&'a self, r: &Ray, t_min: f64, t_max: f64, rec: &mut Option<HitRecord<'a>>) -> bool {
         let e1 = self.p[1] - self.p[0];
         let e2 = self.p[2] - self.p[0];
@@ -79,27 +88,39 @@ impl<TM: Material> Hittable for Triangle<TM> {
         let div = 1.0 / dot(&s1, &e1);
 
         let t = dot(&s2, &e2) * div;
-        let b1 = dot(&s1, &s) * div;
-        let b2 = dot(&s2, &r.dir) * div;
-        let hit_point = self.p[0] * (1.0 - b1 - b2) + self.p[1] * b1 + self.p[2] * b2;
+        let mut b: [f64; 3] = [0.0; 3];
+        b[1] = dot(&s1, &s) * div;
+        b[2] = dot(&s2, &r.dir) * div;
+        b[0] = 1.0 - b[1] - b[2];
+        let hit_point = self.p[0] * b[0] + self.p[1] * b[1] + self.p[2] * b[2];
+        let normal = (self.norm[0] * b[0] + self.norm[1] * b[1] + self.norm[2] * b[2]).unit_vec();
 
         if t < t_min || t > t_max {
             return false;
         }
 
+        let mut u = 0.0;
+        let mut v = 0.0;
+
+        #[allow(clippy::needless_range_loop)]
+        for i in 0..3 {
+            u += self.tex[i].0 * b[i];
+            v += self.tex[i].1 * b[i];
+        }
+
         let mut rec_data = HitRecord {
             p: hit_point,
-            normal: self.norm,
+            normal,
             mat_ptr: &self.mat,
             t,
-            u: Default::default(),
-            v: Default::default(),
+            u,
+            v,
             front_face: Default::default(),
         };
 
-        rec_data.set_face_normal(r, &self.norm);
+        rec_data.set_face_normal(r, &normal);
 
-        if (b1 >= 0.0) && (b2 >= 0.0) && (b1 + b2 <= 1.0) {
+        if (b[1] >= 0.0) && (b[2] >= 0.0) && (b[1] + b[2] <= 1.0) {
             // Attention!!!
             // only when hit object, the rec can be Some(_)
             *rec = Some(rec_data);

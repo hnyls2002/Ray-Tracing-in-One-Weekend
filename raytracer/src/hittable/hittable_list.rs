@@ -1,10 +1,5 @@
-use rand::{thread_rng, Rng};
-
 use crate::{
-    basic::{
-        ray::Ray,
-        vec3::{Point3, Vec3},
-    },
+    basic::ray::Ray,
     bvh::aabb::{surrounding_box, Aabb},
 };
 
@@ -15,11 +10,7 @@ pub struct HittableList {
     pub objects: Vec<Box<dyn Hittable>>,
 }
 
-#[allow(dead_code)]
 impl HittableList {
-    pub fn clear(&mut self) {
-        self.objects.clear();
-    }
     pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
@@ -62,17 +53,5 @@ impl Hittable for HittableList {
             first_box = false;
         }
         true
-    }
-    fn pdf_value(&self, o: &Point3, v: &Vec3) -> f64 {
-        let weight = 1.0 / self.objects.len() as f64;
-        let mut sum = 0.0;
-        for obj in &self.objects {
-            sum += weight * obj.pdf_value(o, v);
-        }
-        sum
-    }
-    fn random(&self, o: &crate::basic::vec3::Vec3) -> Vec3 {
-        let mut rng = thread_rng();
-        self.objects[rng.gen_range(0..self.objects.len())].random(o)
     }
 }

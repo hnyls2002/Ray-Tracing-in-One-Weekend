@@ -1,14 +1,19 @@
+use std::sync::Arc;
+
 use tobj::{load_obj, GPU_LOAD_OPTIONS};
 
 use crate::{
     basic::vec3::Vec3,
     bvh::BvhNode,
     hittable::{hittable_list::HittableList, objects::triangle::Triangle, Hittable},
-    material::Material,
+    material::lambertian::Lambertian,
+    texture::{image_texture::ImageTexture, obj_texture::ObjTexture},
 };
 
+#[derive(Clone, Copy)]
 pub struct LoadOption<'a> {
     pub path: &'a str,
+    pub file_name: &'a str,
     pub zoom_rate: f64,
     pub zoom_orig: Vec3,
     pub offset: Vec3,
@@ -17,21 +22,41 @@ pub struct LoadOption<'a> {
     pub r_z: f64,
 }
 
-pub fn my_loader<TM: Material + Clone + 'static>(paras: LoadOption, mat: TM) -> Box<dyn Hittable> {
-    let patrick = load_obj(paras.path, &GPU_LOAD_OPTIONS);
-    #[allow(unused_variables)]
+pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
+    let file_str = String::from(paras.path) + paras.file_name + ".obj";
+    let patrick = load_obj(file_str, &GPU_LOAD_OPTIONS);
     let (models, materials) = patrick.unwrap();
+    let materials = materials.unwrap();
+    //let default_mat = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.73, 0.73, 0.73));
     let mut tri_list = Vec::<Triangle<_>>::new();
+
     for md in models {
-        let mut obj_p = Vec::<Vec3>::new();
+        let mut obj_pt = Vec::<_>::new();
+        let mut obj_nm = Vec::<_>::new();
+        let mut obj_tx = Vec::<_>::new();
+        let mat_id = md.mesh.material_id.unwrap();
+        let mat_file_name = String::from(paras.path) + materials[mat_id].diffuse_texture.as_str();
+        let tex = ObjTexture {
+            ptr: Arc::new(ImageTexture::load_image_file(&mat_file_name)),
+        };
+        let mat = Lambertian::new_by_texture(tex);
+
         for p in md.mesh.positions.chunks(3) {
-            obj_p.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
+            obj_pt.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
         }
+        for p in md.mesh.texcoords.chunks(2) {
+            obj_tx.push((p[0] as f64, p[1] as f64));
+        }
+        for p in md.mesh.normals.chunks(3) {
+            obj_nm.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
+        }
+
         for id in md.mesh.indices.chunks(3) {
-            let mut tri = Triangle::new(
-                obj_p[id[0] as usize],
-                obj_p[id[1] as usize],
-                obj_p[id[2] as usize],
+            let mut tri = Triangle::new_from_obj(
+                &obj_pt,
+                &obj_nm,
+                &obj_tx,
+                [id[0] as usize, id[1] as usize, id[2] as usize],
                 mat.clone(),
             );
             tri.zoom(paras.zoom_orig, paras.zoom_rate);

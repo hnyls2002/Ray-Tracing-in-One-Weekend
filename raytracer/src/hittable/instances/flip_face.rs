@@ -1,5 +1,6 @@
 use crate::hittable::Hittable;
 
+#[derive(Clone)]
 pub struct FlipFace<TH>
 where
     TH: Hittable,

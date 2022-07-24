@@ -1,13 +1,10 @@
-use crate::{
-    basic::vec3::{Point3, Vec3},
-    hittable::Hittable,
-};
+use crate::basic::vec3::{Point3, Vec3};
 
-use super::PDF;
+use super::{lightable_list::Lightable, PDF};
 
 pub struct HittablePDF<'a> {
     pub o: Point3,
-    pub ptr: &'a dyn Hittable,
+    pub ptr: &'a dyn Lightable,
 }
 
 impl<'a> PDF for HittablePDF<'a> {

@@ -9,6 +9,7 @@ use crate::{
     bvh::aabb::Aabb,
     hittable::{HitRecord, Hittable},
     material::Material,
+    pdf::lightable_list::Lightable,
 };
 
 pub struct XYRect<TM>
@@ -62,10 +63,7 @@ where
 }
 
 #[derive(Clone)]
-pub struct XZRect<TM>
-where
-    TM: Material + Clone,
-{
+pub struct XZRect<TM: Material + Clone> {
     pub x0: f64,
     pub x1: f64,
     pub z0: f64,
@@ -111,6 +109,9 @@ where
 
         true
     }
+}
+
+impl<TM: Material + Clone> Lightable for XZRect<TM> {
     fn pdf_value(&self, origin: &Point3, v: &Vec3) -> f64 {
         let mut rec = None;
         if !self.hit(
@@ -147,9 +148,10 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct YZRect<TM>
 where
-    TM: Material,
+    TM: Material + Clone,
 {
     pub y0: f64,
     pub y1: f64,
@@ -161,7 +163,7 @@ where
 
 impl<TM> Hittable for YZRect<TM>
 where
-    TM: Material,
+    TM: Material + Clone,
 {
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut Aabb) -> bool {
         *output_box = Aabb {
@@ -195,5 +197,42 @@ where
         *rec = Some(rec_data);
 
         true
+    }
+}
+
+impl<TM: Material + Clone> Lightable for YZRect<TM> {
+    fn pdf_value(&self, origin: &Point3, v: &Vec3) -> f64 {
+        let mut rec = None;
+        if !self.hit(
+            &Ray {
+                orig: *origin,
+                dir: *v,
+                tm: 0.0,
+            },
+            0.001,
+            INFINITY,
+            &mut rec,
+        ) {
+            return 0.0;
+        }
+
+        let area = (self.y1 - self.y0) * (self.z1 - self.z0);
+        let rec_data = if let Some(data) = rec {
+            data
+        } else {
+            panic!("No hit record");
+        };
+        let distance_squared = (rec_data.t * v.length()).powi(2);
+        let cosine = (dot(v, &rec_data.normal) / v.length()).abs();
+
+        distance_squared / (cosine * area)
+    }
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        let random_point = Vec3(
+            self.k,
+            random_double(self.y0, self.y1),
+            random_double(self.z0, self.z1),
+        );
+        random_point - *origin
     }
 }
