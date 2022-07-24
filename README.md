@@ -18,3 +18,9 @@ $$
 不难发现$\rm{pdf} = \rm{scatter\_ pdf}$ ,其实第一本书就是在这里隐式地用了这个方法。
 
 如果`direction`换成均匀随机，换成均匀的概率密度函数即可。
+
+### obj 模型的导入以及贴图
+
+- 添加`Lightable triat`,将`hittable_pdf`改进了具有`LightableList`
+- 使用`tobj`库实现了`obj`模型的导入。
+- 使用`cramer rule`求直线和三角形的交，并且按照**重心坐标系**实现了`hit point`的法向量，贴图的纹理坐标`texcoords`
