@@ -148,9 +148,21 @@ pub fn test_scene() -> (HittableList, LightableList) {
         r_z: 60.0,
     };
 
+    let _babara_option = LoadOption {
+        path: "./raytracer/sources/BabaraObj/",
+        file_name: "Babara",
+        zoom_rate: 24.0,
+        zoom_orig: Vec3(0.0, 0.0, 0.0),
+        offset: Vec3(270.0, 0.0, 200.0),
+        r_x: 0.0,
+        r_y: 180.0,
+        r_z: 0.0,
+    };
+
     //list.add(my_loader(_baseball_option));
     //list.add(my_loader(_baseball_bat_option));
-    list.add(my_loader(_patrick_option));
+    //list.add(my_loader(_patrick_option));
+    list.add(my_loader(_babara_option));
 
     let mut lights = LightableList::default();
     lights.add(Box::new(light_top));

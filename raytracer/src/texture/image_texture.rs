@@ -24,7 +24,7 @@ impl ImageTexture {
         let width = self.data.dimensions().0;
         let height = self.data.dimensions().1;
         let color_scale = 1.0 / 255.0;
-        if u.floor() == width as f64 - 1.0 || v.floor() == height as f64 - 1.0 {
+        if u.floor() as u32 == width - 1 || v.floor() as u32 == height - 1 {
             let mut i = u as u32;
             let mut j = v as u32;
             i = i.min(width - 1);

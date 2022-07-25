@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use tobj::{load_obj, GPU_LOAD_OPTIONS};
 
@@ -29,6 +29,7 @@ pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
     let materials = materials.unwrap();
     //let default_mat = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.73, 0.73, 0.73));
     let mut tri_list = Vec::<Triangle<_>>::new();
+    let mut img_map = HashMap::<String, ObjTexture>::new();
 
     for md in models {
         let mut obj_pt = Vec::<_>::new();
@@ -36,10 +37,17 @@ pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
         let mut obj_tx = Vec::<_>::new();
         let mat_id = md.mesh.material_id.unwrap();
         let mat_file_name = String::from(paras.path) + materials[mat_id].diffuse_texture.as_str();
-        let tex = ObjTexture {
-            ptr: Arc::new(ImageTexture::load_image_file(&mat_file_name)),
+        let tex = if let Some(data) = img_map.get::<String>(&mat_file_name) {
+            data.clone()
+        } else {
+            let data = ObjTexture {
+                ptr: Arc::new(ImageTexture::load_image_file(&mat_file_name)),
+            };
+            img_map.insert(mat_file_name, data.clone());
+            data
         };
-        let mat = Lambertian::new_by_texture(tex);
+
+        let mat = Lambertian::new_by_texture(tex.clone());
 
         for p in md.mesh.positions.chunks(3) {
             obj_pt.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
@@ -50,6 +58,8 @@ pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
         for p in md.mesh.normals.chunks(3) {
             obj_nm.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
         }
+        println!("mat file = {}", materials[mat_id].name);
+        println!("obj_tex = {},", md.mesh.texcoords.len());
 
         for id in md.mesh.indices.chunks(3) {
             let mut tri = Triangle::new_from_obj(
