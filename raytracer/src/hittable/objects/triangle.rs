@@ -19,6 +19,7 @@ pub struct Triangle<TM: Material> {
     pub mat: TM,
 }
 
+#[allow(dead_code)]
 impl<TM: Material> Triangle<TM> {
     pub fn new_from_obj(
         pt: &[Vec3],
@@ -79,6 +80,11 @@ impl<TM: Material> Triangle<TM> {
 
         for i in 0..3 {
             self.p[i] += center;
+        }
+    }
+    pub fn set_position(&mut self, center_old: Vec3, center_new: Vec3) {
+        for q in self.p.iter_mut() {
+            *q += center_new - center_old;
         }
     }
     fn get_hit_point(&self, r: &Ray) -> (Vec3, f64) {

@@ -15,13 +15,21 @@ impl<'a> MixturePDF<'a> {
 impl<'a> PDF for MixturePDF<'a> {
     // p0 hittable-pdf p1 self-scatter-pdf
     fn value(&self, direction: &Vec3) -> f64 {
-        0.5 * self.p[0].value(direction) + 0.5 * self.p[1].value(direction)
+        if self.p[0].value(direction) < 0.0 {
+            self.p[1].value(direction)
+        } else {
+            0.5 * self.p[0].value(direction) + 0.5 * self.p[1].value(direction)
+        }
     }
     fn generate(&self) -> Vec3 {
-        if random_double_unit() < 0.5 {
-            self.p[0].generate()
-        } else {
+        if (self.p[0].generate() - Vec3(0.0, 0.0, 0.0)).length() < 1e-10 {
             self.p[1].generate()
+        } else {
+            if random_double_unit() < 0.5 {
+                self.p[0].generate()
+            } else {
+                self.p[1].generate()
+            }
         }
     }
 }

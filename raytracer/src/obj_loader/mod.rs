@@ -17,11 +17,13 @@ pub struct LoadOption<'a> {
     pub zoom_rate: f64,
     pub zoom_orig: Vec3,
     pub offset: Vec3,
+    pub set_flag: bool, // when true, the offset is the position of the object's center
     pub r_x: f64,
     pub r_y: f64,
     pub r_z: f64,
 }
 
+#[allow(dead_code)]
 pub fn my_loader(_id: u32, paras: LoadOption) -> Box<dyn Hittable> {
     let file_str = String::from(paras.path) + paras.file_name + ".obj";
     let patrick = load_obj(file_str, &GPU_LOAD_OPTIONS);
@@ -75,23 +77,29 @@ pub fn my_loader(_id: u32, paras: LoadOption) -> Box<dyn Hittable> {
                 mat.clone(),
             );
             tri.zoom(paras.zoom_orig, paras.zoom_rate);
-            tri.trans(paras.offset);
+            if !paras.set_flag {
+                tri.trans(paras.offset);
+            }
             tri_list.push(tri);
         }
     }
-    let mut center = Vec3::default();
+    let mut center_old = Vec3::default();
+    let _center_new = paras.offset;
     let tot_points: f64 = 3.0 * tri_list.len() as f64;
     for tri in tri_list.iter() {
         for i in 0..3 {
-            center.0 += tri.p[i].0 / tot_points;
-            center.1 += tri.p[i].1 / tot_points;
-            center.2 += tri.p[i].2 / tot_points;
+            center_old.0 += tri.p[i].0 / tot_points;
+            center_old.1 += tri.p[i].1 / tot_points;
+            center_old.2 += tri.p[i].2 / tot_points;
         }
     }
     let mut hit_list = HittableList::default();
     for tri in tri_list {
         let mut r_tri = tri;
-        r_tri.rotate_xyz(center, paras.r_x, paras.r_y, paras.r_z);
+        r_tri.rotate_xyz(center_old, paras.r_x, paras.r_y, paras.r_z);
+        if paras.set_flag {
+            r_tri.set_position(center_old, _center_new);
+        }
         hit_list.add(Box::new(r_tri));
     }
     Box::new(BvhNode::new_from_list(hit_list, 0.0, 1.0))

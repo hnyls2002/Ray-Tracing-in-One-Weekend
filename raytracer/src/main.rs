@@ -5,7 +5,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use crate::status_bar::{show_image_information, show_thread_information};
+use crate::{
+    scenes::my_test_scene::my_test_scene,
+    status_bar::{show_image_information, show_thread_information},
+};
 use basic::{clamp, random_double_unit, ray::Ray, vec3::Color, INFINITY};
 use camera::Camera;
 use console::style;
@@ -16,7 +19,6 @@ use pdf::{
     hittable_pdf::HittablePDF, lightable_list::Lightable, lightable_list::LightableList,
     mixture_pdf::MixturePDF, PDF,
 };
-use scenes::obj_test_scene::obj_test_scene;
 
 mod basic;
 mod bvh;
@@ -30,11 +32,11 @@ mod status_bar;
 mod texture;
 
 // Image
-const ASPECT_RATIO: f64 = 1.0;
+const ASPECT_RATIO: f64 = 16.0 / 10.0;
 const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 2000;
-const MAX_DEPTH: i32 = 100;
+const SAMPLES_PER_PIXEL: u32 = 100;
+const MAX_DEPTH: i32 = 50;
 
 // Threads
 const THREAD_NUM: u32 = 20;
@@ -96,15 +98,7 @@ fn ray_color(
         o: rec_data.p,
         ptr: lights,
     });
-    let mixed_pdf = MixturePDF::new(
-        light_pdf,
-        if let Some(data) = srec_data.pdf_func {
-            data
-        } else {
-            panic!("No pdf function");
-        },
-    );
-
+    let mixed_pdf = MixturePDF::new(light_pdf, srec_data.pdf_func.expect("No pdf function"));
     let scattered = Ray {
         orig: rec_data.p,
         dir: mixed_pdf.generate(),
@@ -236,7 +230,7 @@ fn main() {
 
     // Multi-Thread
     for _id in 0..THREAD_NUM {
-        let scene_op = obj_test_scene(_id);
+        let scene_op = my_test_scene(_id);
         thread_list.push(create_thread(
             line_pool.clone(),
             scene_op.world,
