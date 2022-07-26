@@ -22,7 +22,7 @@ pub struct LoadOption<'a> {
     pub r_z: f64,
 }
 
-pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
+pub fn my_loader(_id: u32, paras: LoadOption) -> Box<dyn Hittable> {
     let file_str = String::from(paras.path) + paras.file_name + ".obj";
     let patrick = load_obj(file_str, &GPU_LOAD_OPTIONS);
     let (models, materials) = patrick.unwrap();
@@ -31,7 +31,9 @@ pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
     let mut tri_list = Vec::<Triangle<_>>::new();
     let mut img_map = HashMap::<String, ObjTexture>::new();
 
-    for md in models {
+    let mut cnt = 0;
+
+    for md in models.iter() {
         let mut obj_pt = Vec::<_>::new();
         let mut obj_nm = Vec::<_>::new();
         let mut obj_tx = Vec::<_>::new();
@@ -58,8 +60,11 @@ pub fn my_loader(paras: LoadOption) -> Box<dyn Hittable> {
         for p in md.mesh.normals.chunks(3) {
             obj_nm.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
         }
-        println!("mat file = {}", materials[mat_id].name);
-        println!("obj_tex = {},", md.mesh.texcoords.len());
+
+        cnt = cnt + 1;
+
+        println!("Thread #{} : Name : {}", _id, paras.file_name);
+        println!("loading image {} / {}", cnt, models.len());
 
         for id in md.mesh.indices.chunks(3) {
             let mut tri = Triangle::new_from_obj(

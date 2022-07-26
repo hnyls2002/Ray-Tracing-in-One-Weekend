@@ -1,5 +1,6 @@
 use crate::{
     basic::vec3::Vec3,
+    camera::Camera,
     hittable::{
         hittable_list::HittableList,
         instances::flip_face::FlipFace,
@@ -9,9 +10,12 @@ use crate::{
     obj_loader::{my_loader, LoadOption},
     pdf::lightable_list::LightableList,
     texture::solid_color_texture::SolidColor,
+    ASPECT_RATIO,
 };
 
-pub fn test_scene() -> (HittableList, LightableList) {
+use super::SceneOption;
+
+pub fn obj_test_scene(_id: u32) -> SceneOption {
     let mut list = HittableList { objects: vec![] };
     let red = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.65, 0.05, 0.05));
     let white = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.73, 0.73, 0.73));
@@ -162,12 +166,41 @@ pub fn test_scene() -> (HittableList, LightableList) {
     //list.add(my_loader(_baseball_option));
     //list.add(my_loader(_baseball_bat_option));
     //list.add(my_loader(_patrick_option));
-    list.add(my_loader(_babara_option));
+    list.add(my_loader(_id, _babara_option));
 
     let mut lights = LightableList::default();
     lights.add(Box::new(light_top));
     lights.add(Box::new(light_left));
     lights.add(Box::new(light_right));
 
-    (list, lights)
+    SceneOption {
+        world: list,
+        lights,
+        cam: camera_generator(),
+        background: Vec3(0.0, 0.0, 0.0),
+    }
+}
+
+fn camera_generator() -> Camera {
+    // Camera
+    let lookfrom = Vec3(278.0, 278.0, -800.0);
+    let lookat = Vec3(278.0, 278.0, 0.0);
+    let vfov: f64 = 40.0;
+    let aperture = 0.0;
+
+    // Camera
+    let vup: Vec3 = Vec3(0.0, 1.0, 0.0);
+    let dist_to_focus: f64 = 10.0;
+
+    Camera::new(
+        lookfrom,
+        lookat,
+        vup,
+        vfov,
+        ASPECT_RATIO,
+        aperture,
+        dist_to_focus,
+        0.0,
+        1.0,
+    )
 }

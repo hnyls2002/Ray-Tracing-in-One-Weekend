@@ -6,12 +6,7 @@ use std::{
 };
 
 use crate::status_bar::{show_image_information, show_thread_information};
-use basic::{
-    clamp, random_double_unit,
-    ray::Ray,
-    vec3::{Color, Vec3},
-    INFINITY,
-};
+use basic::{clamp, random_double_unit, ray::Ray, vec3::Color, INFINITY};
 use camera::Camera;
 use console::style;
 use hittable::{hittable_list::HittableList, Hittable};
@@ -21,7 +16,7 @@ use pdf::{
     hittable_pdf::HittablePDF, lightable_list::Lightable, lightable_list::LightableList,
     mixture_pdf::MixturePDF, PDF,
 };
-use scenes::test_scene::test_scene;
+use scenes::obj_test_scene::obj_test_scene;
 
 mod basic;
 mod bvh;
@@ -221,38 +216,9 @@ fn create_thread(
     })
 }
 
-#[allow(unused_variables)]
-fn world_generator(
-    background: &mut Color,
-    lookfrom: &mut Vec3,
-    lookat: &mut Vec3,
-    vfov: &mut f64,
-    aperture: &mut f64,
-) -> (HittableList, LightableList) {
-    // aspect_ratio = 1.0
-    // image_width = 600
-    // samples_per_pixel = 200
-    *background = Color::new(0.0, 0.0, 0.0);
-    *lookfrom = Vec3(278.0, 278.0, -800.0);
-    *lookat = Vec3(278.0, 278.0, 0.0);
-    *vfov = 40.0;
-    test_scene()
-}
-
 fn main() {
     // Output Path
     let path = "output/test.jpg";
-
-    // Camera
-    let mut background = Color::new(0.0, 0.0, 0.0);
-    let mut lookfrom: Vec3 = Vec3::default();
-    let mut lookat: Vec3 = Vec3::default();
-    let mut vfov: f64 = 40.0;
-    let mut aperture = 0.0;
-
-    // Camera
-    let vup: Vec3 = Vec3(0.0, 1.0, 0.0);
-    let dist_to_focus: f64 = 10.0;
 
     // Show the Image Information
     show_image_information(path);
@@ -268,44 +234,15 @@ fn main() {
     // Show the Threads Information
     show_thread_information();
 
-    /*
-    let (world, lights) = world_generator(
-        &mut background,
-        &mut lookfrom,
-        &mut lookat,
-        &mut vfov,
-        &mut aperture,
-    );
-    exit(0);
-    */
-
     // Multi-Thread
     for _id in 0..THREAD_NUM {
-        let (world, lights) = world_generator(
-            &mut background,
-            &mut lookfrom,
-            &mut lookat,
-            &mut vfov,
-            &mut aperture,
-        );
-        let cam = Camera::new(
-            lookfrom,
-            lookat,
-            vup,
-            vfov,
-            ASPECT_RATIO,
-            aperture,
-            dist_to_focus,
-            0.0,
-            1.0,
-        );
-
+        let scene_op = obj_test_scene(_id);
         thread_list.push(create_thread(
             line_pool.clone(),
-            world,
-            lights,
-            background,
-            cam,
+            scene_op.world,
+            scene_op.lights,
+            scene_op.background,
+            scene_op.cam,
             multiprogress.clone(),
         ));
     }
