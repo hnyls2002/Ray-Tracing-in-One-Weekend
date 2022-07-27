@@ -1,3 +1,6 @@
+pub mod treelight;
+pub mod ufo;
+
 use std::{collections::HashMap, sync::Arc};
 
 use tobj::{load_obj, GPU_LOAD_OPTIONS};
@@ -24,7 +27,7 @@ pub struct LoadOption<'a> {
 }
 
 #[allow(dead_code)]
-pub fn my_loader(_id: u32, paras: LoadOption) -> Box<dyn Hittable> {
+pub fn my_loader(id: u32, paras: LoadOption) -> Box<dyn Hittable> {
     let file_str = String::from(paras.path) + paras.file_name + ".obj";
     let patrick = load_obj(file_str, &GPU_LOAD_OPTIONS);
     let (models, materials) = patrick.unwrap();
@@ -63,10 +66,15 @@ pub fn my_loader(_id: u32, paras: LoadOption) -> Box<dyn Hittable> {
             obj_nm.push(Vec3(p[0] as f64, p[1] as f64, p[2] as f64));
         }
 
-        cnt = cnt + 1;
+        cnt += 1;
 
-        println!("Thread #{} : Name : {}", _id, paras.file_name);
-        println!("loading image {} / {}", cnt, models.len());
+        println!(
+            "Thread #{}, Name : {}, loading image {} / {}",
+            id,
+            paras.file_name,
+            cnt,
+            models.len()
+        );
 
         for id in md.mesh.indices.chunks(3) {
             let mut tri = Triangle::new_from_obj(

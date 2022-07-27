@@ -28,11 +28,20 @@ impl<TM: Material> Triangle<TM> {
         idx: [usize; 3],
         mat: TM,
     ) -> Triangle<TM> {
-        Triangle::<TM> {
-            p: [pt[idx[0]], pt[idx[1]], pt[idx[2]]],
-            tex: [tx[idx[0]], tx[idx[1]], tx[idx[2]]],
-            norm: [nm[idx[0]], nm[idx[1]], nm[idx[2]]],
-            mat,
+        if tx.is_empty() {
+            Triangle::<TM> {
+                p: [pt[idx[0]], pt[idx[1]], pt[idx[2]]],
+                tex: [(0.5, 0.5), (0.5, 0.5), (0.5, 0.5)],
+                norm: [nm[idx[0]], nm[idx[1]], nm[idx[2]]],
+                mat,
+            }
+        } else {
+            Triangle::<TM> {
+                p: [pt[idx[0]], pt[idx[1]], pt[idx[2]]],
+                tex: [tx[idx[0]], tx[idx[1]], tx[idx[2]]],
+                norm: [nm[idx[0]], nm[idx[1]], nm[idx[2]]],
+                mat,
+            }
         }
     }
     pub fn zoom(&mut self, origin: Vec3, b: f64) {

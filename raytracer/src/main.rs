@@ -6,8 +6,10 @@ use std::{
 };
 
 use crate::{
+    basic::background::Background,
     scenes::my_test_scene::my_test_scene,
     status_bar::{show_image_information, show_thread_information},
+    texture::image_texture::ImageTexture,
 };
 use basic::{clamp, random_double_unit, ray::Ray, vec3::Color, INFINITY};
 use camera::Camera;
@@ -33,9 +35,9 @@ mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 16.0 / 10.0;
-const IMAGE_WIDTH: u32 = 1200;
+const IMAGE_WIDTH: u32 = 2560;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 100;
+const SAMPLES_PER_PIXEL: u32 = 2000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -119,17 +121,6 @@ fn write_color(pixel: &mut Rgb<u8>, pixel_colors: &Color) {
     let mut g = pixel_colors.1 / (SAMPLES_PER_PIXEL as f64);
     let mut b = pixel_colors.2 / (SAMPLES_PER_PIXEL as f64);
 
-    // replace NaN with zero
-    if r.is_nan() {
-        r = 0.0;
-    }
-    if g.is_nan() {
-        g = 0.0;
-    }
-    if b.is_nan() {
-        b = 0.0;
-    }
-
     // Gamma-correct for gamma=2.0
     r = r.sqrt();
     g = g.sqrt();
@@ -160,6 +151,7 @@ fn create_thread(
     world: HittableList,
     lights: LightableList,
     background: Color,
+    back_img: Background,
     cam: Camera,
     bars: Arc<MultiProgress>,
 ) -> JoinHandle<Vec<(u32, Vec<Color>)>> {
@@ -198,7 +190,19 @@ fn create_thread(
                         let u = (px as f64 + random_double_unit()) / (IMAGE_WIDTH - 1) as f64;
                         let v = (py as f64 + random_double_unit()) / (IMAGE_HEIGHT - 1) as f64;
                         let r = cam.get_ray(u, v);
-                        pixel_colors += ray_color(&r, &background, &world, &lights, MAX_DEPTH);
+
+                        let mut tmp_rec = None;
+                        if !world.hit(&r, 0.001, INFINITY, &mut tmp_rec) {
+                            pixel_colors += back_img.value(px, py);
+                        } else {
+                            let mut res = ray_color(&r, &background, &world, &lights, MAX_DEPTH);
+                            for t in 0..3 {
+                                if res[t].is_nan() {
+                                    res[t] = 0.0;
+                                }
+                            }
+                            pixel_colors += res;
+                        }
                     }
                     line_color.push(pixel_colors);
                 }
@@ -228,14 +232,20 @@ fn main() {
     // Show the Threads Information
     show_thread_information();
 
+    let stars = Background {
+        img: Arc::new(ImageTexture::load_image_file(
+            "./raytracer/sources/background.jpg",
+        )),
+    };
     // Multi-Thread
-    for _id in 0..THREAD_NUM {
-        let scene_op = my_test_scene(_id);
+    for id in 0..THREAD_NUM {
+        let scene_op = my_test_scene(id);
         thread_list.push(create_thread(
             line_pool.clone(),
             scene_op.world,
             scene_op.lights,
             scene_op.background,
+            stars.clone(),
             scene_op.cam,
             multiprogress.clone(),
         ));

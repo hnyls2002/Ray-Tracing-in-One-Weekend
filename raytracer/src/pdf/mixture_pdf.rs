@@ -24,12 +24,10 @@ impl<'a> PDF for MixturePDF<'a> {
     fn generate(&self) -> Vec3 {
         if (self.p[0].generate() - Vec3(0.0, 0.0, 0.0)).length() < 1e-10 {
             self.p[1].generate()
+        } else if random_double_unit() < 0.5 {
+            self.p[0].generate()
         } else {
-            if random_double_unit() < 0.5 {
-                self.p[0].generate()
-            } else {
-                self.p[1].generate()
-            }
+            self.p[1].generate()
         }
     }
 }

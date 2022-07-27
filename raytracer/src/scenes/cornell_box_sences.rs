@@ -92,6 +92,7 @@ pub fn cornell_box() -> (HittableList, HittableList) {
         center: Vec3(190.0, 90.0, 190.0),
         radius: 90.0,
         mat: glass,
+        is_ground: false,
     }));
 
     let mut lights = HittableList::default();
@@ -107,6 +108,7 @@ pub fn cornell_box() -> (HittableList, HittableList) {
         center: Vec3(190.0, 90.0, 190.0),
         radius: 90.0,
         mat: glass, // the material doesn't matter
+        is_ground: false,
     }));
 
     (list, lights)

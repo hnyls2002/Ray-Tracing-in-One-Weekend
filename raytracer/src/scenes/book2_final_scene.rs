@@ -74,6 +74,7 @@ pub fn final_scene() -> HittableList {
         center: Vec3(260.0, 150.0, 45.0),
         radius: 50.0,
         mat: Dielectric { ir: 1.5 },
+        is_ground: false,
     }));
     objects.add(Box::new(Sphere {
         center: Vec3(0.0, 150.0, 145.0),
@@ -82,12 +83,14 @@ pub fn final_scene() -> HittableList {
             albedo: Vec3(0.8, 0.8, 0.9),
             fuzz: 1.0,
         },
+        is_ground: false,
     }));
 
     let mut boundary = Sphere {
         center: Vec3(360.0, 150.0, 145.0),
         radius: 70.0,
         mat: Dielectric { ir: 1.5 },
+        is_ground: false,
     };
 
     objects.add(Box::new(boundary));
@@ -101,6 +104,7 @@ pub fn final_scene() -> HittableList {
         center: Vec3(0.0, 0.0, 0.0),
         radius: 5000.0,
         mat: Dielectric { ir: 1.5 },
+        is_ground: false,
     };
 
     objects.add(Box::new(ConstantMedium::new_by_color(
@@ -117,6 +121,7 @@ pub fn final_scene() -> HittableList {
         center: Vec3(400.0, 200.0, 400.0),
         radius: 100.0,
         mat: earth_material,
+        is_ground: false,
     });
     objects.add(image_sphere);
 
@@ -126,6 +131,7 @@ pub fn final_scene() -> HittableList {
         center: Vec3(220.0, 280.0, 300.0),
         radius: 80.0,
         mat: Lambertian::new_by_texture(pertext),
+        is_ground: false,
     }));
 
     let mut boxes2 = HittableList { objects: vec![] };
@@ -140,6 +146,7 @@ pub fn final_scene() -> HittableList {
             ),
             radius: 10.0,
             mat: white,
+            is_ground: false,
         }));
     }
 

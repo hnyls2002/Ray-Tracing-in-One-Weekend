@@ -22,6 +22,7 @@ pub fn random_scene() -> HittableList {
         center: Point3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
         mat: ground_material,
+        is_ground: true,
     }));
     let mut rng = StdRng::seed_from_u64(19260817);
     let mut fixed_seed_double = || rng.gen_range(0.0..1.0);
@@ -70,6 +71,7 @@ pub fn random_scene() -> HittableList {
                         center,
                         radius: 0.2,
                         mat: sphere_material,
+                        is_ground: false,
                     }));
                 } else {
                     let sphere_material = Dielectric { ir: 1.5 };
@@ -77,6 +79,7 @@ pub fn random_scene() -> HittableList {
                         center,
                         radius: 0.2,
                         mat: sphere_material,
+                        is_ground: false,
                     }));
                 };
             }
@@ -94,18 +97,21 @@ pub fn random_scene() -> HittableList {
         center: Point3::new(0.0, 1.0, 0.0),
         radius: 1.0,
         mat: material1,
+        is_ground: false,
     }));
 
     world.add(Box::new(Sphere {
         center: Point3::new(-4.0, 1.0, 0.0),
         radius: 1.0,
         mat: material2,
+        is_ground: false,
     }));
 
     world.add(Box::new(Sphere {
         center: Point3::new(4.0, 1.0, 0.0),
         radius: 1.0,
         mat: material3,
+        is_ground: false,
     }));
     world
 }

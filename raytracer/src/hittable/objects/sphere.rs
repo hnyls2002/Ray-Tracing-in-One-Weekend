@@ -23,14 +23,22 @@ where
     pub center: Point3,
     pub radius: f64,
     pub mat: TM,
+    pub is_ground: bool,
 }
 
 impl<TM: Material> Sphere<TM> {
-    fn get_sphere_uv(p: &Point3, u: &mut f64, v: &mut f64) {
-        let theta = (-p.1).acos();
-        let phi = (-p.2).atan2(p.0) + PI;
-        *u = phi / (2.0 * PI);
-        *v = theta / PI;
+    fn get_sphere_uv(is_ground: bool, p: &Point3, u: &mut f64, v: &mut f64) {
+        if !is_ground {
+            let theta = (-p.1).acos();
+            let phi = (-p.2).atan2(p.0) + PI;
+            *u = phi / (2.0 * PI);
+            *v = theta / PI;
+        } else {
+            let theta = (-p.2).acos();
+            let phi = (-p.0).atan2(p.1) + PI;
+            *u = phi / (2.0 * PI);
+            *v = theta / PI;
+        }
     }
 }
 
@@ -64,7 +72,12 @@ impl<TM: Material> Hittable for Sphere<TM> {
             front_face: Default::default(),
         };
         rec_data.set_face_normal(r, &outward_normal);
-        Sphere::<TM>::get_sphere_uv(&outward_normal, &mut rec_data.u, &mut rec_data.v);
+        Sphere::<TM>::get_sphere_uv(
+            self.is_ground,
+            &outward_normal,
+            &mut rec_data.u,
+            &mut rec_data.v,
+        );
         *rec = Some(rec_data);
         true
     }

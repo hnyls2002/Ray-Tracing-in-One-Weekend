@@ -1,3 +1,4 @@
+pub mod bump;
 pub mod constant_medium;
 pub mod flip_face;
 pub mod rotate_y;
