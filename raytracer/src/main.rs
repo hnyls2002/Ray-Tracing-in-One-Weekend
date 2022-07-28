@@ -35,9 +35,9 @@ mod texture;
 
 // Image
 const ASPECT_RATIO: f64 = 16.0 / 10.0;
-const IMAGE_WIDTH: u32 = 2560;
+const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 2000;
+const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -273,7 +273,7 @@ fn main() {
                     generating_progress_bar.inc(1);
                 }
             }
-            Err(_) => println!("Thread Failed!!!"),
+            Err(_) => println!("Thread Failed!!! {}", _id),
         }
     }
     generating_progress_bar.finish();
