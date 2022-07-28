@@ -6,6 +6,7 @@ use crate::{
     hittable::{HitRecord, Hittable},
 };
 
+#[derive(Clone, Copy)]
 pub struct RotateY<TH>
 where
     TH: Hittable,

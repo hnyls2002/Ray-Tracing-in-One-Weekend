@@ -12,7 +12,7 @@ use crate::{
     pdf::lightable_list::Lightable,
 };
 
-#[derive(Clone,Copy)]
+#[derive(Clone, Copy)]
 pub struct XYRect<TM>
 where
     TM: Material,

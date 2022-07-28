@@ -183,13 +183,17 @@ fn cuboid_generator(world_list: &mut HittableList, light_list: &mut LightableLis
         albedo: Vec3(0.8, 0.85, 0.88),
         fuzz: 0.0,
     };
+    let _mirror = Metal {
+        albedo: Vec3(1.0, 1.0, 1.0),
+        fuzz: 0.0,
+    };
     let _brass_metal = Metal {
         albedo: Vec3(191.0 / 255.0, 173.0 / 255.0, 111.0 / 255.0),
         fuzz: 0.3,
     };
     let _brass_lam = Lambertian::<SolidColor>::new_by_solid_color(Vec3(1.0, 127.0 / 255.0, 0.0));
     let offet = Vec3(2088.0, 548.0, 300.0) * 0.2;
-    let p0 = Vec3(150.0, 0.0, -230.0);
+    let p0 = Vec3(150.0, 0.0, -180.0);
 
     let cuboid = MyBox::new(p0, p0 + offet, _alumium);
     world_list.add(Box::new(cuboid));
@@ -379,12 +383,27 @@ fn beach_generator(id: u32, world_list: &mut HittableList, light_list: &mut Ligh
         x0: 700.0,
         x1: 1000.0,
         y0: 0.0,
-        y1: 500.0,
+        y1: 700.0,
         k: -1000.0,
         mat: light_get(7.0),
     };
     world_list.add(Box::new(light_front.clone()));
     light_list.add(Box::new(light_front));
+}
+
+fn pyramid_generator(id: u32, world_list: &mut HittableList) {
+    let _pyramid_option = LoadOption {
+        path: "./raytracer/sources/pyramid_monsters/",
+        file_name: "pyramid_monsters",
+        zoom_rate: 870.0,
+        zoom_orig: Vec3(0.0, 0.0, 0.0),
+        offset: Vec3(390.0, 220.0, 160.0),
+        set_flag: true,
+        r_x: 0.0,
+        r_y: 180.0,
+        r_z: 0.0,
+    };
+    world_list.add(my_loader(id, _pyramid_option));
 }
 
 pub fn my_test_scene(id: u32) -> SceneOption {
@@ -409,6 +428,8 @@ pub fn my_test_scene(id: u32) -> SceneOption {
     beach_generator(id, &mut world_list, &mut light_list);
 
     models_generator(id, &mut world_list);
+
+    pyramid_generator(id, &mut world_list);
 
     let _green = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.0, 1.0, 0.0));
     let _alumium = Metal {

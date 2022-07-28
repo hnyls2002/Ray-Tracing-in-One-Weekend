@@ -37,11 +37,11 @@ mod texture;
 const ASPECT_RATIO: f64 = 16.0 / 10.0;
 const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 100;
+const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
-const THREAD_NUM: u32 = 20;
+const THREAD_NUM: u32 = 11;
 const LINES_PER_ISSUE: u32 = 1;
 
 fn ray_color(
