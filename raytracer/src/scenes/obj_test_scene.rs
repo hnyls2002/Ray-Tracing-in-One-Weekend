@@ -167,6 +167,17 @@ pub fn obj_test_scene(id: u32) -> SceneOption {
     lights.add(Box::new(light_left));
     lights.add(Box::new(light_right));
 
+    let light_front = XYRect {
+        x0: 100.0,
+        x1: 400.0,
+        y0: 0.0,
+        y1: 500.0,
+        k: -800.0,
+        mat: light_week,
+    };
+    list.add(Box::new(light_front));
+    lights.add(Box::new(light_front));
+
     SceneOption {
         world: list,
         lights,

@@ -25,10 +25,8 @@ impl ImageTexture {
         let height = self.data.dimensions().1;
         let color_scale = 1.0 / 255.0;
         if u.floor() as u32 == width - 1 || v.floor() as u32 == height - 1 {
-            let mut i = u as u32;
-            let mut j = v as u32;
-            i = i.min(width - 1);
-            j = j.min(height - 1);
+            let i = u as u32;
+            let j = v as u32;
             let col = self.data.get_pixel(i, j).0;
             return Color::new(col[0] as f64, col[1] as f64, col[2] as f64) * color_scale;
         }
@@ -59,6 +57,8 @@ impl Texture for ImageTexture {
         let height = self.data.dimensions().1;
         u = clamp(u, 0.0, 1.0) * width as f64;
         v = (1.0 - clamp(v, 0.0, 1.0)) * height as f64;
+        u = u.min(width as f64 - 1.0);
+        v = v.min(height as f64 - 1.0);
         self.bilinear_interpolation(u, v)
     }
 }

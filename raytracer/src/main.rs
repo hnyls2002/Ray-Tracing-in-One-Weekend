@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     basic::background::Background,
-    scenes::my_test_scene::my_test_scene,
+    scenes::{my_test_scene::my_test_scene, obj_test_scene::obj_test_scene},
     status_bar::{show_image_information, show_thread_information},
     texture::image_texture::ImageTexture,
 };
@@ -34,10 +34,10 @@ mod status_bar;
 mod texture;
 
 // Image
-const ASPECT_RATIO: f64 = 16.0 / 10.0;
-const IMAGE_WIDTH: u32 = 2560;
+const ASPECT_RATIO: f64 = 1.0;
+const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 2000;
+const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -239,7 +239,7 @@ fn main() {
     };
     // Multi-Thread
     for id in 0..THREAD_NUM {
-        let scene_op = my_test_scene(id);
+        let scene_op = obj_test_scene(id);
         thread_list.push(create_thread(
             line_pool.clone(),
             scene_op.world,
@@ -273,7 +273,7 @@ fn main() {
                     generating_progress_bar.inc(1);
                 }
             }
-            Err(_) => println!("Thread Failed!!!"),
+            Err(_) => println!("Thread Failed!!! {}",_id),
         }
     }
     generating_progress_bar.finish();
