@@ -41,7 +41,7 @@ fn ground_generator(world_list: &mut HittableList) {
     };
     world_list.add(Box::new(BumpSurface::new_from_obj_and_normal_map(
         ground,
-        "./raytracer/sources/ground_norm.jpg",
+        "./raytracer/sources/Images/ground_norm.jpg",
         1500,
     )));
 }
@@ -99,7 +99,7 @@ fn lights_generator(id: u32, world_list: &mut HittableList, light_list: &mut Lig
 
     // treelight
     let _treelight_option = LoadOption {
-        path: "./raytracer/sources/treelight/",
+        path: "./raytracer/sources/Treelight/",
         file_name: "treelight",
         zoom_rate: 2000.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -112,58 +112,10 @@ fn lights_generator(id: u32, world_list: &mut HittableList, light_list: &mut Lig
     world_list.add(treelight_loader(id, _treelight_option, _light_orange));
 }
 
-fn models_generator(id: u32, world_list: &mut HittableList) {
-    let _hutao_option = LoadOption {
-        path: "./raytracer/sources/HutaoObj/",
-        file_name: "Hutao",
-        zoom_rate: 20.0,
-        zoom_orig: Vec3(0.0, 0.0, 0.0),
-        offset: Vec3(490.0, 250.0, 230.0),
-        set_flag: true,
-        r_x: 0.0,
-        r_y: 0.0,
-        r_z: 0.0,
-    };
-
-    let _patrick_option = LoadOption {
-        path: "./raytracer/sources/someobj/",
-        file_name: "patrick",
-        zoom_rate: 100.0,
-        zoom_orig: Vec3(0.0, 0.0, 0.0),
-        offset: Vec3(935.0, 90.0, -20.0),
-        set_flag: true,
-        r_x: 0.0,
-        r_y: 150.0,
-        r_z: 0.0,
-    };
-
-    let _baseball_option = LoadOption {
-        path: "./raytracer/sources/someobj/",
-        file_name: "10483_baseball_v1_L3",
-        zoom_rate: 7.0,
-        zoom_orig: Vec3(0.0, 0.0, 0.0),
-        offset: Vec3(440.0, 270.0, 150.0),
-        set_flag: true,
-        r_x: -20.0,
-        r_y: 180.0,
-        r_z: 0.0,
-    };
-
-    let _baseball_bat_option = LoadOption {
-        path: "./raytracer/sources/someobj/",
-        file_name: "10485_Baseball_bat_v1_max2011_iteration-2",
-        zoom_rate: 7.0,
-        zoom_orig: Vec3(0.0, 0.0, 0.0),
-        offset: Vec3(270.0, 230.0, 150.0),
-        set_flag: true,
-        r_x: 0.0,
-        r_y: 0.0,
-        r_z: 60.0,
-    };
-
+fn moon_generator(id: u32, world_list: &mut HittableList) {
     let _moon_option = LoadOption {
-        path: "./raytracer/sources/MoonObj/",
-        file_name: "Moon",
+        path: "./raytracer/sources/Moon/",
+        file_name: "moon",
         zoom_rate: 200.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
         offset: Vec3(1200.0, 420.0, 800.0),
@@ -173,9 +125,7 @@ fn models_generator(id: u32, world_list: &mut HittableList) {
         r_z: 0.0,
     };
 
-    world_list.add(my_loader(id, _patrick_option));
-    //world_list.add(my_loader(id, _moon_option));
-    //world_list.add(my_loader(id, _hutao_option));
+    world_list.add(my_loader(id, _moon_option));
 }
 
 fn cuboid_generator(world_list: &mut HittableList, light_list: &mut LightableList) {
@@ -207,7 +157,7 @@ fn cuboid_generator(world_list: &mut HittableList, light_list: &mut LightableLis
         mat: _brass_lam,
     };
     let board =
-        BumpSurface::new_from_obj_and_normal_map(board, "./raytracer/sources/SJTU_norm.png", 1);
+        BumpSurface::new_from_obj_and_normal_map(board, "./raytracer/sources/Images/SJTU_norm.png", 1);
 
     world_list.add(Box::new(board));
 
@@ -266,7 +216,7 @@ fn cuboid_generator(world_list: &mut HittableList, light_list: &mut LightableLis
 
 fn blackboard_generator(id: u32, world_list: &mut HittableList) {
     let _blackboard_option = LoadOption {
-        path: "./raytracer/sources/blackboard/",
+        path: "./raytracer/sources/Blackboard/",
         file_name: "blackboard",
         zoom_rate: 1250.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -282,7 +232,7 @@ fn blackboard_generator(id: u32, world_list: &mut HittableList) {
 
 fn city_platform_generator(id: u32, world_list: &mut HittableList, light_list: &mut LightableList) {
     let _platform_option = LoadOption {
-        path: "./raytracer/sources/city_platform/",
+        path: "./raytracer/sources/Cityp_Platform/",
         file_name: "city_platform",
         zoom_rate: 7000.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -296,7 +246,7 @@ fn city_platform_generator(id: u32, world_list: &mut HittableList, light_list: &
     world_list.add(platform);
 
     let _ufo_option = LoadOption {
-        path: "./raytracer/sources/ufo/",
+        path: "./raytracer/sources/UFO/",
         file_name: "ufo",
         zoom_rate: 20.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -310,7 +260,7 @@ fn city_platform_generator(id: u32, world_list: &mut HittableList, light_list: &
     world_list.add(ufo);
 
     let _alien_option = LoadOption {
-        path: "./raytracer/sources/alien/",
+        path: "./raytracer/sources/Alien/",
         file_name: "alien",
         zoom_rate: 200.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -339,7 +289,7 @@ fn city_platform_generator(id: u32, world_list: &mut HittableList, light_list: &
 
 fn beach_generator(id: u32, world_list: &mut HittableList, light_list: &mut LightableList) {
     let _beach_option = LoadOption {
-        path: "./raytracer/sources/beach/",
+        path: "./raytracer/sources/Beach/",
         file_name: "beach",
         zoom_rate: 25.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -353,7 +303,7 @@ fn beach_generator(id: u32, world_list: &mut HittableList, light_list: &mut Ligh
     world_list.add(beach);
 
     let _banana_option = LoadOption {
-        path: "./raytracer/sources/bananalight/",
+        path: "./raytracer/sources/Bananalight/",
         file_name: "bananalight",
         zoom_rate: 3000.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -367,8 +317,8 @@ fn beach_generator(id: u32, world_list: &mut HittableList, light_list: &mut Ligh
     world_list.add(banana0);
 
     let _babara_option = LoadOption {
-        path: "./raytracer/sources/BabaraObj/",
-        file_name: "Babara",
+        path: "./raytracer/sources/Babara/",
+        file_name: "babara",
         zoom_rate: 24.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
         offset: Vec3(870.0, 290.0, -250.0),
@@ -378,6 +328,19 @@ fn beach_generator(id: u32, world_list: &mut HittableList, light_list: &mut Ligh
         r_z: 0.0,
     };
     world_list.add(my_loader(id, _babara_option));
+
+    let _patrick_option = LoadOption {
+        path: "./raytracer/sources/Patrick/",
+        file_name: "patrick",
+        zoom_rate: 100.0,
+        zoom_orig: Vec3(0.0, 0.0, 0.0),
+        offset: Vec3(935.0, 90.0, -20.0),
+        set_flag: true,
+        r_x: 0.0,
+        r_y: 150.0,
+        r_z: 0.0,
+    };
+    world_list.add(my_loader(id, _patrick_option));
 
     let light_front = XYRect {
         x0: 700.0,
@@ -393,7 +356,7 @@ fn beach_generator(id: u32, world_list: &mut HittableList, light_list: &mut Ligh
 
 fn pyramid_generator(id: u32, world_list: &mut HittableList) {
     let _pyramid_option = LoadOption {
-        path: "./raytracer/sources/pyramid_monsters/",
+        path: "./raytracer/sources/Pyramid_Monsters/",
         file_name: "pyramid_monsters",
         zoom_rate: 870.0,
         zoom_orig: Vec3(0.0, 0.0, 0.0),
@@ -427,7 +390,7 @@ pub fn my_test_scene(id: u32) -> SceneOption {
 
     beach_generator(id, &mut world_list, &mut light_list);
 
-    models_generator(id, &mut world_list);
+    moon_generator(id, &mut world_list);
 
     pyramid_generator(id, &mut world_list);
 

@@ -114,7 +114,7 @@ pub fn final_scene() -> HittableList {
     )));
 
     let earth_material = Lambertian::new_by_texture(ImageTexture::load_image_file(
-        "./raytracer/sources/yiyan.jpg",
+        "./raytracer/sources/Images/yiyan.jpg",
     ));
 
     let image_sphere = Box::new(Sphere {

@@ -41,7 +41,7 @@ const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
-const THREAD_NUM: u32 = 11;
+const THREAD_NUM: u32 = 20;
 const LINES_PER_ISSUE: u32 = 1;
 
 fn ray_color(
@@ -234,7 +234,7 @@ fn main() {
 
     let stars = Background {
         img: Arc::new(ImageTexture::load_image_file(
-            "./raytracer/sources/background.jpg",
+            "./raytracer/sources/Images/background.jpg",
         )),
     };
     // Multi-Thread

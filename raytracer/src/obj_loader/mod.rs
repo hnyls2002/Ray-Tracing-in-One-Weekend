@@ -29,8 +29,8 @@ pub struct LoadOption<'a> {
 #[allow(dead_code)]
 pub fn my_loader(id: u32, paras: LoadOption) -> Box<dyn Hittable> {
     let file_str = String::from(paras.path) + paras.file_name + ".obj";
-    let patrick = load_obj(file_str, &GPU_LOAD_OPTIONS);
-    let (models, materials) = patrick.unwrap();
+    let obj = load_obj(file_str, &GPU_LOAD_OPTIONS);
+    let (models, materials) = obj.unwrap();
     let materials = materials.unwrap();
     //let default_mat = Lambertian::<SolidColor>::new_by_solid_color(Vec3(0.73, 0.73, 0.73));
     let mut tri_list = Vec::<Triangle<_>>::new();
