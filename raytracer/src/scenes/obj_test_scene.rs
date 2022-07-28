@@ -53,7 +53,7 @@ pub fn obj_test_scene(id: u32) -> SceneOption {
         z0: 100.0,
         z1: 150.0,
         k: 554.0,
-        mat: light_week,
+        mat: light_week.clone(),
     };
     let light_right = YZRect {
         y0: 100.0,
@@ -61,7 +61,7 @@ pub fn obj_test_scene(id: u32) -> SceneOption {
         z0: 100.0,
         z1: 150.0,
         k: 1.0,
-        mat: light_week,
+        mat: light_week.clone(),
     };
 
     list.add(Box::new(FlipFace {
@@ -175,7 +175,7 @@ pub fn obj_test_scene(id: u32) -> SceneOption {
         k: -800.0,
         mat: light_week,
     };
-    list.add(Box::new(light_front));
+    list.add(Box::new(light_front.clone()));
     lights.add(Box::new(light_front));
 
     SceneOption {

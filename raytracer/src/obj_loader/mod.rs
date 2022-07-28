@@ -1,3 +1,4 @@
+pub mod moon;
 pub mod treelight;
 pub mod ufo;
 

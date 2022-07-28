@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     basic::background::Background,
-    scenes::my_test_scene::my_test_scene,
+    scenes::final_scene::my_test_scene,
     status_bar::{show_image_information, show_thread_information},
     texture::image_texture::ImageTexture,
 };
@@ -37,7 +37,7 @@ mod texture;
 const ASPECT_RATIO: f64 = 16.0 / 10.0;
 const IMAGE_WIDTH: u32 = 1200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: u32 = 1000;
+const SAMPLES_PER_PIXEL: u32 = 100;
 const MAX_DEPTH: i32 = 50;
 
 // Threads
@@ -216,7 +216,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/test.jpg";
+    let path = "output/final_scene_v1.jpg";
 
     // Show the Image Information
     show_image_information(path);

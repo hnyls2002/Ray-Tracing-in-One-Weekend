@@ -7,7 +7,10 @@ use crate::{
     bvh::BvhNode,
     hittable::{hittable_list::HittableList, objects::triangle::Triangle, Hittable},
     material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
-    texture::{image_texture::ImageTexture, obj_texture::ObjTexture, Texture},
+    texture::{
+        image_texture::ImageTexture, obj_texture::ObjTexture, solid_color_texture::SolidColor,
+        Texture,
+    },
 };
 
 use super::LoadOption;
@@ -96,7 +99,7 @@ pub fn ufo_loader(id: u32, paras: LoadOption) -> Box<dyn Hittable> {
                     &obj_nm,
                     &obj_tx,
                     [id[0] as usize, id[1] as usize, id[2] as usize],
-                    DiffuseLight::new_by_color(col),
+                    DiffuseLight::<SolidColor>::new_by_color(col),
                 );
                 tri.zoom(paras.zoom_orig, paras.zoom_rate);
                 if !paras.set_flag {

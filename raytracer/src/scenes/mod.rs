@@ -6,7 +6,7 @@ use crate::{
 pub mod book1_final_scene;
 pub mod book2_final_scene;
 pub mod cornell_box_sences;
-pub mod my_test_scene;
+pub mod final_scene;
 pub mod obj_test_scene;
 
 pub struct SceneOption {

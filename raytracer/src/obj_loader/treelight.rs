@@ -6,7 +6,7 @@ use crate::{
     basic::vec3::Vec3,
     bvh::BvhNode,
     hittable::{hittable_list::HittableList, objects::triangle::Triangle, Hittable},
-    material::{diffuse_light::DiffuseLight, lambertian::Lambertian},
+    material::{lambertian::Lambertian, Material},
     texture::{image_texture::ImageTexture, obj_texture::ObjTexture, Texture},
 };
 
@@ -24,7 +24,11 @@ fn judge_light(mat: &ObjTexture, tex_uv: &[(f64, f64); 3]) -> bool {
 }
 
 #[allow(dead_code)]
-pub fn treelight_loader(id: u32, paras: LoadOption, light_mat: DiffuseLight) -> Box<dyn Hittable> {
+pub fn treelight_loader<TM: Material + Clone + 'static>(
+    id: u32,
+    paras: LoadOption,
+    light_mat: TM,
+) -> Box<dyn Hittable> {
     let file_str = String::from(paras.path) + paras.file_name + ".obj";
     let patrick = load_obj(file_str, &GPU_LOAD_OPTIONS);
     let (models, materials) = patrick.unwrap();
@@ -86,7 +90,7 @@ pub fn treelight_loader(id: u32, paras: LoadOption, light_mat: DiffuseLight) -> 
                     &obj_nm,
                     &obj_tx,
                     [id[0] as usize, id[1] as usize, id[2] as usize],
-                    light_mat,
+                    light_mat.clone(),
                 );
                 tri.zoom(paras.zoom_orig, paras.zoom_rate);
                 if !paras.set_flag {

@@ -46,7 +46,7 @@ pub fn cornell_box() -> (HittableList, HittableList) {
             z0: 227.0,
             z1: 332.0,
             k: 554.0,
-            mat: light,
+            mat: light.clone(),
         },
     }));
     list.add(Box::new(XZRect {
