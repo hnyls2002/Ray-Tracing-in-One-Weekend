@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     basic::background::Background,
-    scenes::final_scene::my_test_scene,
+    scenes::final_scene::final_scene,
     status_bar::{show_image_information, show_thread_information},
     texture::image_texture::ImageTexture,
 };
@@ -216,7 +216,7 @@ fn create_thread(
 
 fn main() {
     // Output Path
-    let path = "output/final_scene_v1.jpg";
+    let path = "output/works/final_scene.jpg";
 
     // Show the Image Information
     show_image_information(path);
@@ -239,7 +239,7 @@ fn main() {
     };
     // Multi-Thread
     for id in 0..THREAD_NUM {
-        let scene_op = my_test_scene(id);
+        let scene_op = final_scene(id);
         thread_list.push(create_thread(
             line_pool.clone(),
             scene_op.world,

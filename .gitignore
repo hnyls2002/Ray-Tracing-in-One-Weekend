@@ -1,4 +1,7 @@
 target/
 output/*
 !.gitkeep
-task.md
+!output/book1
+!output/book2
+!output/book3
+!output/works

@@ -412,7 +412,7 @@ fn glass_and_frog_generator(id: u32, world_list: &mut HittableList) {
     world_list.add(my_loader(id, _frog_option));
 }
 
-pub fn my_test_scene(id: u32) -> SceneOption {
+pub fn final_scene(id: u32) -> SceneOption {
     let mut world_list = HittableList::default();
     let mut light_list = LightableList::default();
 
